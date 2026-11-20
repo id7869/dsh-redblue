@@ -1,0 +1,229 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1600" viewBox="0 0 1440 1600" role="img" aria-labelledby="doc-title doc-desc" font-family="system-ui, Segoe UI, Helvetica, Arial, sans-serif">
+<title id="doc-title">dsh-redblue workflow 与 skill 执行架构图</title>
+<desc id="doc-desc">Intent → dsh-rb-run skill routing → workflow capsule → 39 G-* preflight gates before any agent → assess 7 stages → deterministic artifacts and SHA256 seal → exit codes 0/1/2 → optional guard execution with hash-only evidence.</desc>
+<defs>
+<marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3d82d6"/></marker>
+<marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7f95ab"/></marker>
+<marker id="ar-red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#d63c4b"/></marker>
+<marker id="ar-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#8b6cc9"/></marker>
+<marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3fb37f"/></marker>
+<linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d63c4b"/><stop offset="0.55" stop-color="#3d82d6"/><stop offset="1" stop-color="#8b6cc9"/></linearGradient>
+</defs>
+<rect width="1440" height="1600" fill="#0b1119"/>
+<rect x="0" y="0" width="1440" height="6" fill="url(#accent)"/>
+<text x="48" y="54" font-size="29" font-weight="700" fill="#e9f1fa">dsh-redblue 执行架构：workflow × skill</text>
+<text x="48" y="82" font-size="14.5" font-weight="400" fill="#a9bdd2">Execution Architecture · 意图 → 入口技能 → 原生 workflow → 39 项 G-* 门禁（agent 之前拒绝）→ 阶段执行 → 封存产物 → 退出码（+ 可选 guard）</text>
+<text x="1392" y="54" font-size="12" font-weight="400" fill="#63788d" text-anchor="end">dsh-redblue 0.1.0 · 以 assess.js 的 7 阶段为主干 · 2026-11-20</text>
+<rect x="40" y="112" width="300" height="112" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<text x="58" y="140" font-size="13.5" font-weight="650" fill="#e9f1fa">操作者 / 会话</text>
+<text x="58" y="164" font-size="10.8" font-weight="400" fill="#a9bdd2">意图：红队 · 蓝队 · 紫队</text>
+<text x="58" y="183" font-size="10.8" font-weight="400" fill="#7f95ab">已有或先建立授权 scope</text>
+<text x="58" y="202" font-size="10.8" font-weight="400" fill="#7f95ab">默认 report-only</text>
+<rect x="372" y="112" width="340" height="112" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<text x="390" y="140" font-size="13.5" font-weight="650" fill="#e9f1fa">入口技能 · dsh-rb-run</text>
+<text x="390" y="164" font-size="10.8" font-weight="400" fill="#a9bdd2">skills/run/SKILL.md</text>
+<text x="390" y="183" font-size="10.8" font-weight="400" fill="#7f95ab">9 行意图 → 脚本路由表</text>
+<text x="390" y="202" font-size="10.8" font-weight="400" fill="#7f95ab">工具面自检 + 降级说明</text>
+<rect x="744" y="112" width="316" height="112" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<text x="762" y="140" font-size="13.5" font-weight="650" fill="#e9f1fa">选定脚本 · workflow/</text>
+<text x="762" y="164" font-size="10.8" font-weight="400" fill="#a9bdd2">assess · recon · exploit · post · hunt</text>
+<text x="762" y="183" font-size="10.8" font-weight="400" fill="#7f95ab">ir · purple · triage · harden</text>
+<text x="762" y="202" font-size="10.8" font-weight="400" fill="#7f95ab">读取全文 → 内联提交</text>
+<rect x="1092" y="112" width="308" height="112" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<text x="1110" y="140" font-size="13.5" font-weight="650" fill="#e9f1fa">原生 workflow 工具</text>
+<text x="1110" y="164" font-size="10.8" font-weight="400" fill="#a9bdd2">脚本运行时（无 fs / 网络 / Node API）</text>
+<text x="1110" y="183" font-size="10.8" font-weight="400" fill="#7f95ab">args · phase · log · agent</text>
+<text x="1110" y="202" font-size="10.8" font-weight="400" fill="#7f95ab">parallel · pipeline</text>
+<line x1="344" y1="168" x2="366" y2="168" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<line x1="716" y1="168" x2="738" y2="168" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<line x1="1064" y1="168" x2="1086" y2="168" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<line x1="720" y1="228" x2="720" y2="244" stroke="#3d82d6" stroke-width="2" marker-end="url(#ar-blue)"/>
+<rect x="734" y="231.5" width="117.11" height="18.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="741" y="243" font-size="10.5" font-weight="500" fill="#a9bdd2">args（meta + 参数）</text>
+<rect x="40" y="250" width="296" height="174.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
+<text x="58" y="279.5" font-size="13.5" font-weight="650" fill="#e9f1fa">args 形状校验</text>
+<text x="58" y="307.3" font-size="10.8" font-weight="400" fill="#a9bdd2">scope（9 键，归一化后）</text>
+<text x="58" y="323.3" font-size="10.8" font-weight="400" fill="#a9bdd2">workDir / skillDir：Windows 绝对路径</text>
+<text x="58" y="339.3" font-size="10.8" font-weight="400" fill="#a9bdd2">maxConcurrency：1–8（默认 2）</text>
+<text x="58" y="355.3" font-size="10.8" font-weight="400" fill="#a9bdd2">dryRun：默认 true（零目标侧动作）</text>
+<text x="58" y="371.3" font-size="10.8" font-weight="400" fill="#a9bdd2">confirm（exploit/post）· activeScan（recon）</text>
+<text x="58" y="387.3" font-size="10.8" font-weight="400" fill="#7f95ab">未知键/越界 → G-ARG-01 · G-PATH-01..03</text>
+<text x="58" y="403.3" font-size="10.8" font-weight="400" fill="#7f95ab">G-CONC-01 · G-CONF-01（未声明字段）</text>
+<rect x="356" y="250" width="700" height="226" rx="13" fill="#12283d" stroke="#2f5f96" stroke-width="1"/>
+<text x="374" y="278" font-size="13.5" font-weight="650" fill="#e9f1fa">preflight(args, CONFIG) · 39 项 G-* 硬门禁（collect-all）</text>
+<text x="374" y="297" font-size="10.5" font-weight="400" fill="#7f95ab">9 个 workflow 各取子集 30–35 个（assess 30 / exploit 35）；任一命中 → 拒绝；G-OUT-01 由首阶段判定</text>
+<rect x="374" y="312" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="386" y="330" font-size="11.5" font-weight="650" fill="#3d82d6">G-AUTH-01..07</text>
+<text x="386" y="344" font-size="10" font-weight="400" fill="#7f95ab">授权对象 / type / 签发人 / 有效期</text>
+<rect x="714" y="312" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="726" y="330" font-size="11.5" font-weight="650" fill="#3d82d6">G-TGT-01..04</text>
+<text x="726" y="344" font-size="10" font-weight="400" fill="#7f95ab">目标非空 / 通配 / exclusions</text>
+<rect x="374" y="380" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="386" y="398" font-size="11.5" font-weight="650" fill="#3d82d6">G-MODE-01..03</text>
+<text x="386" y="412" font-size="10" font-weight="400" fill="#7f95ab">mode 下限 · recon activeScan</text>
+<rect x="714" y="380" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="726" y="398" font-size="11.5" font-weight="650" fill="#3d82d6">G-WIN · G-BUD · G-DH</text>
+<text x="726" y="412" font-size="10" font-weight="400" fill="#7f95ab">时间窗 / 预算 / 数据处置</text>
+<rect x="374" y="448" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="386" y="466" font-size="11.5" font-weight="650" fill="#3d82d6">G-DS-01..07</text>
+<text x="386" y="480" font-size="10" font-weight="400" fill="#7f95ab">数据源：hunt/ir/purple/triage/harden/exploit</text>
+<rect x="714" y="448" width="326" height="58" rx="8" fill="#172333" stroke="#2f5f96" stroke-width="1"/>
+<text x="726" y="466" font-size="11.5" font-weight="650" fill="#3d82d6">G-CFM-01..04</text>
+<text x="726" y="480" font-size="10" font-weight="400" fill="#7f95ab">confirm 精确匹配（exploit/post）</text>
+<rect x="1080" y="250" width="320" height="226" rx="13" fill="#2a1520" stroke="#7e2a36" stroke-width="1"/>
+<text x="1098" y="278" font-size="13.5" font-weight="650" fill="#d63c4b">拒绝 · fail-closed</text>
+<text x="1098" y="306" font-size="11" font-weight="650" fill="#e9f1fa">status = rejected</text>
+<text x="1098" y="327" font-size="11" font-weight="650" fill="#e9f1fa">exitCode = 1</text>
+<text x="1098" y="348" font-size="11" font-weight="400" fill="#a9bdd2">rejectedBy = [G-* …]</text>
+<text x="1098" y="369" font-size="11" font-weight="400" fill="#a9bdd2">artifacts = [] · sealed = false</text>
+<text x="1098" y="390" font-size="11" font-weight="400" fill="#a9bdd2">0 个 agent 启动</text>
+<text x="1098" y="411" font-size="11" font-weight="400" fill="#a9bdd2">拒绝发生在任何阶段之前</text>
+<text x="1098" y="432" font-size="11" font-weight="400" fill="#a9bdd2">不写任何产物</text>
+<line x1="1060" y1="320" x2="1074" y2="320" stroke="#d63c4b" stroke-width="2" marker-end="url(#ar-red)"/>
+<rect x="1041" y="302" width="54" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="1048" y="313" font-size="10" font-weight="500" fill="#d63c4b">任一命中</text>
+<line x1="706" y1="480" x2="706" y2="586" stroke="#3d82d6" stroke-width="2" marker-end="url(#ar-blue)"/>
+<rect x="718" y="529.5" width="117.74" height="18.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="725" y="541" font-size="10.5" font-weight="500" fill="#a9bdd2">全部通过（0 个拒绝）</text>
+<text x="40" y="566" font-size="13" font-weight="600" fill="#a9bdd2">执行阶段（以 assess.js 为例：7 个阶段；recon/exploit/purple 5 · post/hunt 4 · ir/triage 6 · harden 7）</text>
+<rect x="40" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="40" y="590" width="184" height="3" rx="1.5" fill="#d63c4b"/>
+<text x="54" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">scope</text>
+<text x="54" y="638" font-size="10.5" font-weight="500" fill="#d63c4b">red-scope</text>
+<text x="54" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">授权 / RoE 归一化</text>
+<line x1="226" y1="642" x2="234" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="236" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="236" y="590" width="184" height="3" rx="1.5" fill="#d63c4b"/>
+<text x="250" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">recon</text>
+<text x="250" y="638" font-size="10.5" font-weight="500" fill="#d63c4b">red-recon</text>
+<text x="250" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">被动优先资产测绘</text>
+<line x1="422" y1="642" x2="430" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="432" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="432" y="590" width="184" height="3" rx="1.5" fill="#d63c4b"/>
+<text x="446" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">surface</text>
+<text x="446" y="638" font-size="10.5" font-weight="500" fill="#d63c4b">red-surface</text>
+<text x="446" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">威胁假设与优先级</text>
+<line x1="618" y1="642" x2="626" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="628" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="628" y="590" width="184" height="3" rx="1.5" fill="#d63c4b"/>
+<text x="642" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">discover</text>
+<text x="642" y="638" font-size="10.5" font-weight="500" fill="#d63c4b">red-discover ×8</text>
+<text x="642" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">web/api/cloud/container</text>
+<text x="642" y="673" font-size="9.6" font-weight="400" fill="#7f95ab">ad/ot/mobile/wireless</text>
+<line x1="814" y1="642" x2="822" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="824" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="824" y="590" width="184" height="3" rx="1.5" fill="#d63c4b"/>
+<text x="838" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">validate</text>
+<text x="838" y="638" font-size="10.5" font-weight="500" fill="#d63c4b">red-validate ×N</text>
+<text x="838" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">仅候选 &gt; 0 时派发</text>
+<line x1="1010" y1="642" x2="1018" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="1020" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="1020" y="590" width="184" height="3" rx="1.5" fill="#3fb37f"/>
+<text x="1034" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">report</text>
+<text x="1034" y="638" font-size="10.5" font-weight="500" fill="#3fb37f">rb-report</text>
+<text x="1034" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">agent 逐字写盘 + 回读</text>
+<line x1="1206" y1="642" x2="1214" y2="642" stroke="#3d82d6" stroke-width="1.6" marker-end="url(#ar-blue)"/>
+<rect x="1216" y="590" width="184" height="104" rx="11" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="1216" y="590" width="184" height="3" rx="1.5" fill="#3fb37f"/>
+<text x="1230" y="620" font-size="14.5" font-weight="700" fill="#e9f1fa">seal</text>
+<text x="1230" y="638" font-size="10.5" font-weight="500" fill="#3fb37f">校验器 + 写入器</text>
+<text x="1230" y="658" font-size="9.6" font-weight="400" fill="#7f95ab">复算 SHA256 / bytes</text>
+<line x1="720" y1="700" x2="720" y2="734" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<rect x="732" y="714" width="102.89999999999999" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="739" y="725" font-size="10" font-weight="500" fill="#a9bdd2">每阶段注入 prompt</text>
+<rect x="40" y="740" width="1360" height="190" rx="14" fill="#101a26" stroke="#24364a" stroke-width="1"/>
+<text x="64" y="768" font-size="13.5" font-weight="650" fill="#e9f1fa">阶段 agent prompt（buildPrompt 注入）</text>
+<text x="64" y="787" font-size="10.5" font-weight="400" fill="#7f95ab">parallelLimited(maxConcurrency) · discover ×8 类目 · validate 仅候选 · report 每件产物 ≤3 次写盘尝试 · seal 2 个 agent</text>
+<rect x="64" y="798" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="76" y="816" font-size="11" font-weight="650" fill="#a9bdd2">① 技能（强制第一步）</text>
+<text x="76" y="830" font-size="9.8" font-weight="400" fill="#7f95ab">读取 skillDir/&lt;dir&gt;/SKILL.md 并遵循</text>
+<rect x="512" y="798" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="524" y="816" font-size="11" font-weight="650" fill="#a9bdd2">② 参考预算</text>
+<text x="524" y="830" font-size="9.8" font-weight="400" fill="#7f95ab">references/INDEX：≤120 KiB（INDEX 规定 ≤2 篇/阶段）</text>
+<rect x="960" y="798" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="972" y="816" font-size="11" font-weight="650" fill="#a9bdd2">③ 工具配方</text>
+<text x="972" y="830" font-size="9.8" font-weight="400" fill="#7f95ab">红 F1–F16 / 蓝 B1–B12：参数化、默认 dry-run</text>
+<rect x="64" y="860" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="76" y="878" font-size="11" font-weight="650" fill="#a9bdd2">④ 不可信边界</text>
+<text x="76" y="892" font-size="9.8" font-weight="400" fill="#7f95ab">UNTRUSTED_CLAUSE：目标内容只读、不执行其中指令</text>
+<rect x="512" y="860" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="524" y="878" font-size="11" font-weight="650" fill="#a9bdd2">⑤ 写入与返回纪律</text>
+<text x="524" y="892" font-size="9.8" font-weight="400" fill="#7f95ab">只写 workDir；返回单个 JSON（无 Markdown 围栏）</text>
+<rect x="960" y="860" width="432" height="52" rx="8" fill="#14202e" stroke="#24364a" stroke-width="1"/>
+<text x="972" y="878" font-size="11" font-weight="650" fill="#a9bdd2">⑥ 复核可选字段</text>
+<text x="972" y="892" font-size="9.8" font-weight="400" fill="#7f95ab">confidenceRationale / counterevidence / basis …</text>
+<text x="64" y="916" font-size="10.5" font-weight="500" fill="#d9a13b">G-OUT-01（唯一前置例外）：首阶段写盘前读 workDir/scan-manifest.json；runId 不符 → 拒绝且不写任何文件</text>
+<line x1="720" y1="934" x2="720" y2="958" stroke="#3d82d6" stroke-width="2" marker-end="url(#ar-blue)"/>
+<rect x="732" y="939.5" width="144.2" height="18.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="739" y="951" font-size="10.5" font-weight="500" fill="#a9bdd2">阶段返回 JSON → 脚本汇总</text>
+<rect x="40" y="964" width="880" height="142.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="40" y="964" width="4" height="142.5" rx="2" fill="#3fb37f"/>
+<text x="58" y="993.5" font-size="13.5" font-weight="650" fill="#e9f1fa">脚本汇总 → 确定性产物（stableStringify + 纯 JS SHA256）</text>
+<text x="58" y="1021.3" font-size="10.8" font-weight="400" fill="#a9bdd2">公共：findings.json · coverage.json · report.md · exports/results.sarif · scan-manifest.json · scope.json</text>
+<text x="58" y="1037.3" font-size="10.8" font-weight="400" fill="#7f95ab">专属：recon/surface · exploit-log · post · hunt-plan/hunt-results · intake/timeline/containment</text>
+<text x="58" y="1053.3" font-size="10.8" font-weight="400" fill="#7f95ab">　　　coverage-matrix · baseline/gaps/remediation · state/findings.jsonl</text>
+<text x="58" y="1069.3" font-size="10.8" font-weight="400" fill="#7f95ab">每件计算 bytes 与 sha256（期望值）→ report agent 逐字写盘 → 回读校验</text>
+<text x="58" y="1085.3" font-size="10.8" font-weight="400" fill="#7f95ab">产物只写 workDir；schema/ 6 个 draft-07 约束结构</text>
+<rect x="952" y="964" width="448" height="126.5" rx="12" fill="#12281f" stroke="#2c6b50" stroke-width="1"/>
+<rect x="952" y="964" width="4" height="126.5" rx="2" fill="#3fb37f"/>
+<text x="970" y="993.5" font-size="13.5" font-weight="650" fill="#e9f1fa">seal：复算与封存</text>
+<text x="970" y="1021.3" font-size="10.8" font-weight="400" fill="#a9bdd2">① 只读复算磁盘 SHA256 / bytes</text>
+<text x="970" y="1037.3" font-size="10.8" font-weight="400" fill="#a9bdd2">② 逐字写 scan-manifest.json</text>
+<text x="970" y="1053.3" font-size="10.8" font-weight="400" fill="#7f95ab">③ mismatch → failed manifest · status=error</text>
+<text x="970" y="1069.3" font-size="10.8" font-weight="400" fill="#7f95ab">④ 全部一致 → sealed=true · status=completed</text>
+<line x1="924" y1="1034" x2="946" y2="1034" stroke="#3fb37f" stroke-width="1.6" marker-end="url(#ar-green)"/>
+<line x1="1176" y1="1134" x2="1176" y2="1136" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<rect x="1188" y="1118" width="98.99999999999999" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="1195" y="1129" font-size="10" font-weight="500" fill="#a9bdd2">status / exitCode</text>
+<rect x="40" y="1142" width="440" height="78" rx="10" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="40" y="1142" width="4" height="78" rx="2" fill="#3fb37f"/>
+<text x="58" y="1172" font-size="12.5" font-weight="650" fill="#e9f1fa">exit 0 · status=clean / plan</text>
+<text x="58" y="1195" font-size="10.2" font-weight="400" fill="#7f95ab">无 reportable；exploit/post 的 dryRun 计划完成</text>
+<rect x="500" y="1142" width="440" height="78" rx="10" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="500" y="1142" width="4" height="78" rx="2" fill="#d9a13b"/>
+<text x="518" y="1172" font-size="12.5" font-weight="650" fill="#e9f1fa">exit 2 · status=findings</text>
+<text x="518" y="1195" font-size="10.2" font-weight="400" fill="#7f95ab">reportable ≥ 1（报告与 SARIF 已封存）</text>
+<rect x="960" y="1142" width="440" height="78" rx="10" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="960" y="1142" width="4" height="78" rx="2" fill="#d63c4b"/>
+<text x="978" y="1172" font-size="12.5" font-weight="650" fill="#e9f1fa">exit 1 · status=rejected / error</text>
+<text x="978" y="1195" font-size="10.2" font-weight="400" fill="#7f95ab">任一 G-* 拒绝 · 阶段失败 · 封存 mismatch</text>
+<rect x="40" y="1258" width="1360" height="226" rx="14" fill="#1e1a2e" stroke="#4f3f78" stroke-width="1" stroke-dasharray="8 5"/>
+<text x="64" y="1286" font-size="13.5" font-weight="650" fill="#8b6cc9">可选：tools/sec.mjs guard · 受控执行（不属于 workflow 阶段；操作者显式调用）</text>
+<text x="64" y="1305" font-size="10.5" font-weight="400" fill="#7f95ab">只执行 tools/recipes.json 的 10 条白名单配方；argv 数组逐元素替换后 spawn(shell=false)，无自由命令行入口</text>
+<rect x="64" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="76" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">recipes.json</text>
+<text x="76" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">10 条白名单；未知配方 → G-EXEC-01</text>
+<rect x="288" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="300" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">scope check</text>
+<text x="300" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">gate.mjs 同源；需 written</text>
+<text x="300" y="1363.92" font-size="9.6" font-weight="400" fill="#7f95ab">授权（G-AUTH-03）</text>
+<rect x="512" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="524" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">dry-run（默认）</text>
+<text x="524" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">只输出 argv 计划，不启动任何进程</text>
+<rect x="736" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="748" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">--execute 门禁</text>
+<text x="748" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">written + mode + target∈scope +</text>
+<text x="748" y="1363.92" font-size="9.6" font-weight="400" fill="#7f95ab">confirm 全等 + 二进制存在</text>
+<rect x="960" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="972" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">spawn(argv, shell=false)</text>
+<text x="972" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">recipe 固定 timeout（15–120s）· 输出</text>
+<text x="972" y="1363.92" font-size="9.6" font-weight="400" fill="#7f95ab">≤1 MiB · argv 逐元素</text>
+<rect x="1184" y="1318" width="208" height="108" rx="8" fill="#14202e" stroke="#4f3f78" stroke-width="1"/>
+<text x="1196" y="1336" font-size="10.5" font-weight="650" fill="#e9f1fa">guard-evidence.jsonl</text>
+<text x="1196" y="1350" font-size="9.6" font-weight="400" fill="#7f95ab">recipe/target/argv/时间/退出码/输出</text>
+<text x="1196" y="1363.92" font-size="9.6" font-weight="400" fill="#7f95ab">SHA256（仅哈希）</text>
+<line x1="274" y1="1372" x2="286" y2="1372" stroke="#8b6cc9" stroke-width="1.4" marker-end="url(#ar-purple)"/>
+<line x1="498" y1="1372" x2="510" y2="1372" stroke="#8b6cc9" stroke-width="1.4" marker-end="url(#ar-purple)"/>
+<line x1="722" y1="1372" x2="734" y2="1372" stroke="#8b6cc9" stroke-width="1.4" marker-end="url(#ar-purple)"/>
+<line x1="946" y1="1372" x2="958" y2="1372" stroke="#8b6cc9" stroke-width="1.4" marker-end="url(#ar-purple)"/>
+<line x1="1170" y1="1372" x2="1182" y2="1372" stroke="#8b6cc9" stroke-width="1.4" marker-end="url(#ar-purple)"/>
+<text x="64" y="1468" font-size="10.2" font-weight="400" fill="#7f95ab">拒绝语义：G-EXEC-01（非白名单/二进制缺失/证据写失败）· G-CFM-01/02（confirm）· G-AUTH-03（非 written）；dry-run 下 scope 不可读返回 exit 0 + ok=false</text>
+<line x1="48" y1="1530" x2="88" y2="1530" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<text x="96" y="1534" font-size="10.5" font-weight="400" fill="#63788d">装载 / 调用 / 数据流</text>
+<line x1="268" y1="1530" x2="308" y2="1530" stroke="#7f95ab" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
+<text x="316" y="1534" font-size="10.5" font-weight="400" fill="#63788d">注记 / 可选 / 独立入口</text>
+<line x1="500" y1="1530" x2="540" y2="1530" stroke="#d63c4b" stroke-width="1.8" marker-end="url(#ar-red)"/>
+<text x="548" y="1534" font-size="10.5" font-weight="400" fill="#63788d">拒绝分支（fail-closed）</text>
+<text x="48" y="1558" font-size="11" font-weight="400" fill="#63788d">实现锚点：workflow/assess.js（阶段机与产物）· tools/lib/gate.mjs（scope/guard 同源门禁）· tools/lib/guard.mjs（受控执行）· policy/authorization.md（39 项 G-*）</text>
+<text x="48" y="1578" font-size="11" font-weight="400" fill="#63788d">本图只画已实现能力；数字口径与实测命令见 docs/architecture.md §4（15 技能 / 9 workflow / 27 参考 / 6 schema / 10 recipes / 39 G-*）。</text>
+</svg>

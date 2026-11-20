@@ -1,0 +1,90 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dsh.local/schemas/dsh-redblue/report.schema.json",
+  "title": "dsh-redblue report descriptor",
+  "description": "报告交付描述：sections 对齐 design §8.6 report.md 的七节固定结构；status/exitCode/counts/artifacts 对齐 §6.0 返回对象与 §8.5 封存摘要。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "workflow",
+    "generatedAt",
+    "mode",
+    "dryRun",
+    "scopeDigest",
+    "status",
+    "exitCode",
+    "sections",
+    "counts",
+    "artifacts"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "dsh-redblue-report/v1" },
+    "runId": { "type": "string", "pattern": "^rb_\\d{8}T\\d{6}Z_[0-9a-f]{4}$" },
+    "workflow": {
+      "enum": ["assess", "recon", "exploit", "post", "hunt", "ir", "purple", "triage", "harden"]
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "mode": { "enum": ["passive", "active", "exploit", "post"] },
+    "dryRun": { "type": "boolean" },
+    "scopeDigest": {
+      "type": "string",
+      "pattern": "^dsh-redblue-scope/v1:sha256:[0-9a-f]{64}$"
+    },
+    "status": { "enum": ["clean", "findings", "plan", "rejected", "error"] },
+    "exitCode": { "enum": [0, 1, 2] },
+    "sections": {
+      "type": "array",
+      "minItems": 7,
+      "maxItems": 7,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title"],
+        "properties": {
+          "id": {
+            "enum": ["overview", "authorization", "method", "findings", "limitations", "dataHandling", "seal"]
+          },
+          "title": { "type": "string", "minLength": 1 },
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "reportable", "bySeverity"],
+      "properties": {
+        "candidates": { "type": "integer", "minimum": 0 },
+        "reportable": { "type": "integer", "minimum": 0 },
+        "bySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["critical", "high", "medium", "low"],
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bytes", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } }
+  }
+}

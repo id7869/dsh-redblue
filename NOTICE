@@ -1,0 +1,69 @@
+dsh-redblue 0.1.0
+Copyright 2026 dsh-redblue contributors
+
+This product includes methodology material derived from the following upstream
+projects at the pinned commits below. All upstream material was rewritten,
+condensed, and sanitized into Chinese-language methodology skills/references;
+no upstream executable scripts, agent runtimes, or course dumps are included.
+
+1) Claude-Red - https://github.com/SnailSploit/Claude-Red
+   commit: 6196ba7464662de34e8744d359f175d1a7bca530
+   license: MIT (Copyright (c) 2024-2025 SnailSploit / Kai Aizen)
+   used: recon / web / api / cloud / container / active-directory / wireless /
+         exploit-dev / post-exploitation / privesc methodology, rewritten
+   excluded: 4 course dumps (offensive-windows-boundaries,
+             offensive-windows-mitigations, offensive-crash-analysis,
+             offensive-basic-exploitation), persistence/C2/exfiltration
+             recipes, weaponized artifacts
+
+2) Anthropic-Cybersecurity-Skills - https://github.com/mukul975/Anthropic-Cybersecurity-Skills
+   commit: 54a798831d2266a3ca61ce68a7acb80b81160d57
+   license: Apache-2.0
+   used: blue-team detection / hunting / DFIR / hardening methodology,
+         red-team gaps (wireless depth, cloud/container/OT/AI assessment),
+         detection templates and script-pattern discipline, rewritten
+   excluded: all 809 agent.py scripts, all per-skill LICENSE copies,
+             course dumps (no upstream Python is packaged)
+
+3) Strix - https://github.com/usestrix/strix
+   commit: 8db295a5b3564be2b430bb3a9afdb4db7850fa24
+   license: Apache-2.0
+   used: agent operating discipline, budget/scope discipline, SARIF 2.1.0 and
+         exit-code conventions, gate design, 78 internal technique documents
+         condensed into references/red/strix-techniques.md, rewritten
+   excluded: Strix runtime, Docker dependency, CLI, bundled knowledge base
+             files as-is
+
+Modifications: upstream material was summarized and restructured into
+Chinese-language methodology skills and references; upstream prose is not
+reproduced verbatim; all examples use reserved domains/documentation ranges
+only; executable recipes are rewritten as argv templates behind the
+dsh-redblue authorization gate, not copied from upstream repositories.
+
+The MIT license text for Claude-Red is reproduced below:
+
+MIT License
+
+Copyright (c) 2024-2025 SnailSploit / Kai Aizen
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Apache-2.0 license text: see LICENSE in this package. The dsh-redblue original
+contributions are licensed under Apache-2.0. Downstream distributions must keep
+this NOTICE and the file-level provenance headers intact.

@@ -1,0 +1,116 @@
+{
+  "schemaVersion": "dsh-redblue-recipes/v1",
+  "description": "Whitelisted command recipes for the dsh-redblue guard. Placeholders use {target}; argv is passed directly to spawn without a shell. Examples use reserved domains/documentation ranges only.",
+  "recipes": [
+    {
+      "id": "dns_lookup",
+      "lane": "recon",
+      "binary": "nslookup",
+      "argv": ["-type=ANY", "{target}"],
+      "targetKind": "domain",
+      "requiredMode": "passive",
+      "timeoutMs": 30000,
+      "outputLimitBytes": 1048576,
+      "notes": "被动 DNS 查询；目标示例 example.com。不进行区域传送或暴力枚举。"
+    },
+    {
+      "id": "http_headers",
+      "lane": "recon",
+      "binary": "curl",
+      "argv": ["-sS", "-I", "--max-time", "20", "{target}"],
+      "targetKind": "url",
+      "requiredMode": "active",
+      "timeoutMs": 30000,
+      "outputLimitBytes": 1048576,
+      "notes": "读取授权 URL 的响应头（不下载正文）；目标示例 https://app.example.com/。"
+    },
+    {
+      "id": "tls_certificate",
+      "lane": "recon",
+      "binary": "openssl",
+      "argv": ["s_client", "-connect", "{target}:443", "-servername", "{target}", "-showcerts"],
+      "targetKind": "domain",
+      "requiredMode": "active",
+      "timeoutMs": 30000,
+      "outputLimitBytes": 1048576,
+      "notes": "TLS 证书与握手信息（只读）；目标示例 app.example.com。"
+    },
+    {
+      "id": "port_scan",
+      "lane": "recon",
+      "binary": "nmap",
+      "argv": ["-Pn", "-sT", "--top-ports", "100", "--max-rate", "50", "{target}"],
+      "targetKind": "host",
+      "requiredMode": "active",
+      "timeoutMs": 120000,
+      "outputLimitBytes": 1048576,
+      "notes": "TCP connect 方式探测前 100 个常见端口；限速 50；目标示例 192.0.2.10。"
+    },
+    {
+      "id": "vuln_scan",
+      "lane": "discover",
+      "binary": "nuclei",
+      "argv": ["-u", "{target}", "-severity", "low,medium,high,critical", "-rl", "20", "-silent"],
+      "targetKind": "url",
+      "requiredMode": "active",
+      "timeoutMs": 120000,
+      "outputLimitBytes": 1048576,
+      "notes": "模板化漏洞扫描；限速 20；仅对授权 URL；目标示例 https://app.example.com/。"
+    },
+    {
+      "id": "web_fuzz",
+      "lane": "discover",
+      "binary": "ffuf",
+      "argv": ["-s", "-u", "{target}", "-w", "/usr/share/wordlists/common.txt", "-rate", "10", "-mc", "200,204,301,302,401,403"],
+      "targetKind": "url",
+      "requiredMode": "active",
+      "timeoutMs": 120000,
+      "outputLimitBytes": 1048576,
+      "notes": "目录/路径模糊测试；需本机存在 wordlist（路径可在副本中调整，但必须保持白名单）；限速 10；目标示例 https://app.example.com/。"
+    },
+    {
+      "id": "pcap_read",
+      "lane": "blue",
+      "binary": "tshark",
+      "argv": ["-r", "{target}", "-c", "200", "-q"],
+      "targetKind": "source",
+      "requiredMode": "passive",
+      "timeoutMs": 60000,
+      "outputLimitBytes": 1048576,
+      "notes": "读取本地 PCAP 前 200 个包；target 是本地文件绝对路径（示例 C:/work/evidence.pcap）。"
+    },
+    {
+      "id": "file_hash",
+      "lane": "blue",
+      "binary": "certutil",
+      "argv": ["-hashfile", "{target}", "SHA256"],
+      "targetKind": "source",
+      "requiredMode": "passive",
+      "timeoutMs": 60000,
+      "outputLimitBytes": 1048576,
+      "notes": "Windows certutil SHA256 文件哈希；target 是本地文件绝对路径。"
+    },
+    {
+      "id": "certificate_query",
+      "lane": "blue",
+      "binary": "openssl",
+      "argv": ["x509", "-in", "{target}", "-noout", "-subject", "-issuer", "-dates"],
+      "targetKind": "source",
+      "requiredMode": "passive",
+      "timeoutMs": 30000,
+      "outputLimitBytes": 1048576,
+      "notes": "读取本地 PEM/DER 证书主题、签发者与有效期；target 是证书文件绝对路径。"
+    },
+    {
+      "id": "runtime_probe",
+      "lane": "blue",
+      "binary": "node",
+      "argv": ["--version"],
+      "targetKind": "host",
+      "requiredMode": "passive",
+      "timeoutMs": 15000,
+      "outputLimitBytes": 1048576,
+      "notes": "只读运行时自检：固定 argv 为 --version，不接触目标，用于验证 guard 执行链路。"
+    }
+  ]
+}

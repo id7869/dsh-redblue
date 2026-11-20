@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dsh.local/schemas/dsh-redblue/evidence.schema.json",
+  "title": "dsh-redblue evidence record",
+  "description": "证据记录：对齐 design §8.2 的 evidenceRefs 与 §8.7 的 intake.json files[] / timeline.json events[]。kind 决定必填字段；sha256 用于封存与复算。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind"],
+  "properties": {
+    "kind": { "enum": ["evidence-ref", "intake-file", "timeline-event"] },
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "description": "相对 workDir 的 POSIX 路径，或证据目录内的文件路径。"
+    },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "locator": { "type": "string", "minLength": 1 },
+    "bytes": { "type": "integer", "minimum": 0 },
+    "type": { "type": "string" },
+    "acquiredAt": { "type": "string", "format": "date-time" },
+    "ts": { "type": "string", "format": "date-time" },
+    "source": { "type": "string" },
+    "sourceSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "actor": { "type": "string" },
+    "action": { "type": "string" },
+    "object": { "type": "string" },
+    "note": { "type": "string" },
+    "confidence": { "enum": ["low", "medium", "high"] }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "kind": { "const": "evidence-ref" } }, "required": ["kind"] },
+      "then": { "required": ["path", "sha256"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "intake-file" } }, "required": ["kind"] },
+      "then": { "required": ["path", "sha256", "bytes", "type", "acquiredAt"] }
+    },
+    {
+      "if": { "properties": { "kind": { "const": "timeline-event" } }, "required": ["kind"] },
+      "then": {
+        "required": ["ts", "source", "sourceSha256", "locator", "actor", "action", "object", "confidence"]
+      }
+    }
+  ]
+}

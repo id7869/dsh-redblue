@@ -1,0 +1,117 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dsh.local/schemas/dsh-redblue/coverage.schema.json",
+  "title": "dsh-redblue coverage",
+  "description": "覆盖与阶段状态产物（workflow/report 阶段确定性生成）。字段对齐 design §8.3。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "runId",
+    "workflow",
+    "generatedAt",
+    "scopeDigest",
+    "targets",
+    "dataSources",
+    "phases",
+    "techniques",
+    "counts",
+    "limitations",
+    "snapshotDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "dsh-redblue-coverage/v1" },
+    "runId": { "type": "string", "pattern": "^rb_\\d{8}T\\d{6}Z_[0-9a-f]{4}$" },
+    "workflow": {
+      "enum": ["assess", "recon", "exploit", "post", "hunt", "ir", "purple", "triage", "harden"]
+    },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "scopeDigest": {
+      "type": "string",
+      "pattern": "^dsh-redblue-scope/v1:sha256:[0-9a-f]{64}$"
+    },
+    "targets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value", "status", "reason"],
+        "properties": {
+          "kind": { "enum": ["domain", "url", "cidr", "ip", "host", "source"] },
+          "value": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["tested", "skipped", "excluded"] },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "dataSources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "value", "sha256", "status"],
+        "properties": {
+          "kind": {
+            "enum": ["siem", "edr", "logs", "pcap", "cloudtrail", "telemetry-export", "evidence", "findings", "detections", "baseline", "finding"]
+          },
+          "value": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^([0-9a-f]{64})?$" },
+          "status": { "enum": ["read", "missing", "unreadable"] }
+        }
+      }
+    },
+    "phases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "status", "agents", "notes"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["completed", "failed", "skipped"] },
+          "agents": { "type": "integer", "minimum": 0 },
+          "notes": { "type": "string" }
+        }
+      }
+    },
+    "techniques": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "status", "evidenceRefs"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string" },
+          "status": { "enum": ["covered", "partial", "not-covered", "not-attempted"] },
+          "evidenceRefs": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "reportable", "bySeverity"],
+      "properties": {
+        "candidates": { "type": "integer", "minimum": 0 },
+        "reportable": { "type": "integer", "minimum": 0 },
+        "bySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["critical", "high", "medium", "low"],
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "limitations": { "type": "array", "items": { "type": "string" } },
+    "snapshotDigest": {
+      "type": "string",
+      "pattern": "^dsh-redblue-snapshot/v1:sha256:[0-9a-f]{64}$"
+    }
+  }
+}

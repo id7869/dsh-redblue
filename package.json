@@ -1,0 +1,54 @@
+{
+  "name": "dsh-redblue",
+  "version": "0.1.0",
+  "description": "Authorized red/blue/purple security testing for DSH: 15 bundled methodology skills + 9 gated native workflow capsules + a zero-dependency tool runtime, sanitization-gated, report-only by default.",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "icon": "icon.svg",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "lib",
+    "skills",
+    "references",
+    "workflow",
+    "schema",
+    "policy",
+    "tools",
+    "docs/DETAIL.md",
+    "docs/preview.svg",
+    "docs/tool-runtime.md",
+    "docs/value-extraction.md",
+    "docs/assembly-report.md",
+    "docs/architecture.md",
+    "docs/architecture-plugin.svg",
+    "docs/architecture-workflow.svg",
+    "docs/install.md",
+    "docs/delivery-summary.md",
+    "cordis.patch.yml",
+    "NOTICE",
+    "LICENSE",
+    "README.md",
+    "icon.svg"
+  ],
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "scripts": {
+    "test": "node --test test/scaffold.test.mjs test/sanitize.test.mjs test/workflow.test.mjs test/tool-runtime.test.mjs",
+    "sanitize": "node tools/sanitize-lint.mjs --strict --json"
+  }
+}

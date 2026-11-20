@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dsh.local/schemas/dsh-redblue/finding.schema.json",
+  "title": "dsh-redblue finding",
+  "description": "一条红/蓝/紫安全发现（finding）的结构化表示，字段对齐 design §8.2；指纹由确定性 FNV-1a 64 派生，跨运行稳定。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "fingerprint",
+    "domain",
+    "kind",
+    "title",
+    "target",
+    "category",
+    "severity",
+    "disposition",
+    "confidence",
+    "claim",
+    "evidence",
+    "remediation",
+    "runId",
+    "createdAt"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^rbf_[0-9a-f]{16}$",
+      "description": "形如 rbf_<16 位小写 hex>，由 fingerprint 派生。"
+    },
+    "fingerprint": {
+      "type": "string",
+      "pattern": "^(fp|wfp)_[0-9a-f]{16}$",
+      "description": "fp_<16hex>；无 context/evidence 时为 wfp_<16hex>。"
+    },
+    "domain": { "enum": ["red", "blue", "purple"] },
+    "kind": {
+      "enum": [
+        "vulnerability",
+        "exposure",
+        "hunt-finding",
+        "incident-observation",
+        "detection-gap",
+        "hardening-gap",
+        "triage-review"
+      ]
+    },
+    "title": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": { "enum": ["domain", "url", "cidr", "ip", "host", "source"] },
+        "value": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "label": { "type": "string", "maxLength": 120 }
+      }
+    },
+    "location": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "file": { "type": "string", "minLength": 1 },
+        "line": { "type": "integer", "minimum": 1 },
+        "symbol": { "type": "string" }
+      }
+    },
+    "category": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "cwe": { "type": "string", "pattern": "^CWE-\\d+$" },
+    "cvss": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["version", "vector", "baseScore"],
+      "properties": {
+        "version": { "const": "3.1" },
+        "vector": { "type": "string", "minLength": 1 },
+        "baseScore": { "type": "number", "minimum": 0, "maximum": 10 }
+      }
+    },
+    "severity": { "enum": ["critical", "high", "medium", "low"] },
+    "disposition": { "enum": ["reportable", "suppressed", "not_applicable", "deferred"] },
+    "confidence": { "enum": ["low", "medium", "high"] },
+    "confidenceRationale": { "type": "string", "maxLength": 4000 },
+    "counterevidence": { "type": "string", "maxLength": 4000 },
+    "severityChangeConditions": { "type": "string", "maxLength": 4000 },
+    "fixVerification": { "type": "string", "maxLength": 4000 },
+    "basis": { "type": "string", "maxLength": 4000 },
+    "claim": { "type": "string", "minLength": 1 },
+    "evidence": { "type": "string", "minLength": 1 },
+    "evidenceRefs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+          "locator": { "type": "string" }
+        }
+      }
+    },
+    "repro": { "type": "string" },
+    "remediation": { "type": "string", "minLength": 1 },
+    "attack": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T\\d{4}(\\.\\d{3})?$" },
+          "name": { "type": "string" }
+        }
+      }
+    },
+    "references": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "dataSourceRefs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "path", "sha256"],
+        "properties": {
+          "kind": { "type": "string" },
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "sourceFinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["severity", "source"],
+      "properties": {
+        "id": { "type": "string" },
+        "severity": { "type": "string" },
+        "source": { "type": "string" }
+      }
+    },
+    "runId": { "type": "string", "pattern": "^rb_\\d{8}T\\d{6}Z_[0-9a-f]{4}$" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "context": { "type": "string" }
+  }
+}

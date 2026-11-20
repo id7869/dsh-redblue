@@ -1,0 +1,20 @@
+# dependencies and scratch
+node_modules/
+.work/
+.dsh/
+
+# build/test outputs
+dist/
+coverage/
+*.log
+*.tmp
+
+# local env and secrets
+.env
+.env.*
+*.pem
+*.key
+
+# OS noise
+.DS_Store
+Thumbs.db

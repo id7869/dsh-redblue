@@ -1,0 +1,89 @@
+# dsh-redblue:provenance
+# source-repo: https://github.com/mukul975/Anthropic-Cybersecurity-Skills
+# source-commit: 54a798831d2266a3ca61ce68a7acb80b81160d57
+# source-license: Apache-2.0
+# source-path: skills/building-detection-rules-with-sigma/SKILL.md
+# last-verified: 2026-11-19
+# rewrite-summary: Sigma 规则模板；保留上游字段结构与条件语法，占位符化全部环境值，样例值只用保留域与虚构标识，补误报/阈值注释
+#
+# 用法（三步）
+#   1. 复制本文件为 <RULE_ID>.yml，替换全部 <...> 占位符；
+#   2. 用 sigma check <RULE_ID>.yml 校验（见 references/blue/tool-recipes.md B1）；
+#   3. 用 references/blue/detect-engineering.md §8 的评审清单过一遍。
+#
+# 硬约束
+#   - 占位符：<RULE_TITLE>、<UUID>、<TACTIC>、<TECHNIQUE_ID>、<PRODUCT>、<CATEGORY>、
+#             <FIELD>、<KNOWN_GOOD_VALUE>、<VALUE>、<LEVEL>、<THRESHOLD>
+#   - 样例数据只用保留域（example.com / *.test）与文档网段（192.0.2.0/24 等）；
+#     禁止真实租户、真实账号、真实哈希、真实 IOC。
+#   - falsepositives 不得留空；condition 必须显式写 not filter_*（或说明为何不需要）。
+
+title: <RULE_TITLE>
+id: <UUID>
+status: experimental              # experimental | test | stable | deprecated
+level: <LEVEL>                    # informational | low | medium | high | critical
+description: <一句话写清行为与风险；不写「可能」「疑似」等不可判定措辞>
+references:
+    - https://attack.mitre.org/techniques/<TECHNIQUE_ID>/
+author: <AUTHOR_OR_TEAM>
+date: 2026/11/19
+modified: 2026/11/19
+tags:
+    - attack.<TACTIC>             # 例：attack.execution / attack.persistence
+    - attack.<TECHNIQUE_ID>       # 例：attack.t1055；子技术写 attack.t1055.012
+
+logsource:
+    product: <PRODUCT>            # 例：windows / linux / aws
+    category: <CATEGORY>          # 例：process_access / process_creation / network_connection
+
+detection:
+    # 主选择：只写判定必需的条件；能用等值就不用包含匹配
+    selection_core:
+        <FIELD_1>: '<VALUE>'
+        <FIELD_2>|endswith: '<VALUE>'
+        <FIELD_3>|contains:
+            - '<VALUE_A>'
+            - '<VALUE_B>'
+
+    # 白名单过滤：每条 filter 必须能说清「为什么这个来源合法」
+    filter_known_good:
+        <FIELD_KNOWN_GOOD>: '<KNOWN_GOOD_VALUE>'
+    filter_maintenance_window:
+        <FIELD_TIME>: '<WINDOW_EXPR>'      # 阈值/窗口类过滤，避免把运维窗口算进来
+
+    # 条件：显式排除白名单；阈值语义由后端或目标引擎补充
+    condition: selection_core and not filter_known_good and not filter_maintenance_window
+
+fields:
+    - <EVIDENCE_FIELD_1>
+    - <EVIDENCE_FIELD_2>
+
+falsepositives:
+    - <合法来源 1：安全代理/备份/监控>
+    - <合法来源 2：补丁分发/运维脚本>
+    - <合法来源 3：业务应用自身的同类调用>
+
+# ---------------------------------------------------------------------------
+# 假数据样例（用于自测，不含任何真实标识）
+# 正例：应命中 selection_core 且不命中 filter_*
+#   { "UtcTime": "2026-11-19T03:00:00.000Z",
+#     "Image": "C:\\Users\\<USER>\\AppData\\Local\\Temp\\<PROCESS_NAME>.exe",
+#     "TargetImage": "C:\\Windows\\System32\\<TARGET_PROCESS>.exe",
+#     "GrantedAccess": "0x1010",
+#     "ParentImage": "C:\\Program Files\\<MAIL_CLIENT>\\<MAIL_BINARY>.exe",
+#     "ComputerName": "host-01.example.com" }
+# 反例：只把 ParentImage 改成白名单内的 <KNOWN_GOOD_VALUE>，期望不命中
+# 边界例：计数恰在 <THRESHOLD> 上下各一条
+# 缺失例：去掉 GrantedAccess 字段，期望「不命中且记录字段缺失」
+#
+# 误报抑制与阈值注释
+#   - 先跑对照窗口（同小时段前 7-14 天）取基线量级，再定 <THRESHOLD>；
+#   - 阈值必须参数化：不要在规则里写死具体数字；
+#   - 白名单条目要带负责人 + 复核日期，白名单被滥用即成盲区；
+#   - 同一实体重复命中用 suppress by <ENTITY_FIELD> 抑制，但不得跨技术抑制；
+#   - level 只影响处置优先级，不代表置信度；不成熟用 status: experimental 表达。
+#
+# 覆盖登记（交给 references/purple/coverage-matrix.md §4）
+#   ruleId=<UUID>  attackIds=[<TECHNIQUE_ID>]  engine=sigma
+#   logsource.requiredFields=[<FIELD_1>, <FIELD_2>]
+#   coverageStatus=covered|partial|gap（必须给出理由）

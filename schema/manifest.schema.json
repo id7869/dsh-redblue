@@ -1,0 +1,114 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://dsh.local/schemas/dsh-redblue/manifest.schema.json",
+  "title": "dsh-redblue scan manifest",
+  "description": "封存清单（seal 阶段逐字写入）。字段对齐 design §8.5；artifacts 覆盖除 manifest 自身外的全部产物。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifestVersion",
+    "plugin",
+    "upstreamCommits",
+    "sanitizationPolicy",
+    "toolchain",
+    "runId",
+    "workflow",
+    "mode",
+    "dryRun",
+    "scopeDigest",
+    "startedAt",
+    "finishedAt",
+    "generatedAt",
+    "status",
+    "exitCode",
+    "counts",
+    "artifacts"
+  ],
+  "properties": {
+    "manifestVersion": { "const": "dsh-redblue-manifest/v1" },
+    "plugin": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "license"],
+      "properties": {
+        "name": { "const": "dsh-redblue" },
+        "version": { "enum": ["0.1.0"] },
+        "license": { "const": "Apache-2.0" }
+      }
+    },
+    "upstreamCommits": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["claudeRed", "acs", "strix"],
+      "properties": {
+        "claudeRed": { "const": "6196ba7464662de34e8744d359f175d1a7bca530" },
+        "acs": { "const": "54a798831d2266a3ca61ce68a7acb80b81160d57" },
+        "strix": { "const": "8db295a5b3564be2b430bb3a9afdb4db7850fa24" }
+      }
+    },
+    "sanitizationPolicy": { "enum": ["R1-R12/v1", "R1-R12/v2"] },
+    "toolchain": { "type": "string" },
+    "runId": { "type": "string", "pattern": "^rb_\\d{8}T\\d{6}Z_[0-9a-f]{4}$" },
+    "workflow": {
+      "enum": ["assess", "recon", "exploit", "post", "hunt", "ir", "purple", "triage", "harden"]
+    },
+    "mode": { "enum": ["passive", "active", "exploit", "post"] },
+    "dryRun": { "type": "boolean" },
+    "scopeDigest": {
+      "type": "string",
+      "pattern": "^dsh-redblue-scope/v1:sha256:[0-9a-f]{64}$"
+    },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "finishedAt": { "type": "string", "format": "date-time" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["completed", "failed"] },
+    "exitCode": { "enum": [0, 1, 2] },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidates", "reportable", "bySeverity"],
+      "properties": {
+        "candidates": { "type": "integer", "minimum": 0 },
+        "reportable": { "type": "integer", "minimum": 0 },
+        "bySeverity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["critical", "high", "medium", "low"],
+          "properties": {
+            "critical": { "type": "integer", "minimum": 0 },
+            "high": { "type": "integer", "minimum": 0 },
+            "medium": { "type": "integer", "minimum": 0 },
+            "low": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "bytes", "sha256"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1, "pattern": "^(?![\\/])(?!.*\\.\\.).*$" },
+          "bytes": { "type": "integer", "minimum": 0 },
+          "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+        }
+      }
+    },
+    "mismatches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "expectedSha256", "actualSha256", "bytes"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1 },
+          "expectedSha256": { "type": "string", "pattern": "^([0-9a-f]{64}|unknown)$" },
+          "actualSha256": { "type": "string", "pattern": "^([0-9a-f]{64}|unknown)$" },
+          "bytes": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

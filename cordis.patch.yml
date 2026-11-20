@@ -1,0 +1,7 @@
+# dsh-redblue bundle patch
+# 当本包通过 link: 方式装入 desktop profile 后，dsh 启动时应用本 patch。
+# 插入本插件自身：apply() 里注册 15 个 bundled skill（provider 名 dsh-redblue）。
+
+- insert:
+    - id: dsh-redblue
+      name: 'dsh-redblue'
