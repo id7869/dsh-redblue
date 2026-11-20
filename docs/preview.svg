@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
   <title id="title">dsh-redblue — authorized red/blue/purple security testing for DSH</title>
-  <desc id="desc">Preview: 15 bundled methodology skills, 9 gated native workflows, zero-dependency tool runtime, sanitization gate.</desc>
+  <desc id="desc">Preview: 16 bundled methodology skills, 10 gated native workflows, optional REA reverse lane, zero-dependency tool runtime, sanitization gate.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#0b1119"/>
@@ -19,15 +19,15 @@
   <g font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#e9f1fa">
     <text x="80" y="150" font-size="64" font-weight="700">dsh-redblue</text>
     <text x="80" y="205" font-size="28" fill="#a9bdd2">Authorized red / blue / purple security testing for DSH</text>
-    <text x="80" y="248" font-size="22" fill="#7f95ab">report-only by default · authorization gate · zero dependencies</text>
+    <text x="80" y="248" font-size="22" fill="#7f95ab">report-only by default · authorization gate · zero dependencies · optional REA reverse lane</text>
   </g>
   <g font-family="Segoe UI, Helvetica, Arial, sans-serif">
     <rect x="80" y="300" width="300" height="112" rx="16" fill="#172333" stroke="#2c3e54"/>
-    <text x="104" y="342" font-size="26" fill="#e9f1fa" font-weight="600">15 skills</text>
-    <text x="104" y="378" font-size="19" fill="#9db2c7">rb · red · blue · purple</text>
+    <text x="104" y="342" font-size="26" fill="#e9f1fa" font-weight="600">16 skills</text>
+    <text x="104" y="378" font-size="19" fill="#9db2c7">rb · red · blue · purple · reverse</text>
     <rect x="400" y="300" width="300" height="112" rx="16" fill="#172333" stroke="#2c3e54"/>
-    <text x="424" y="342" font-size="26" fill="#e9f1fa" font-weight="600">9 workflows</text>
-    <text x="424" y="378" font-size="19" fill="#9db2c7">scope → … → seal · 0/1/2</text>
+    <text x="424" y="342" font-size="26" fill="#e9f1fa" font-weight="600">10 workflows</text>
+    <text x="424" y="378" font-size="19" fill="#9db2c7">scope → … → seal · 0/1/2 · blocked</text>
     <rect x="720" y="300" width="400" height="112" rx="16" fill="#172333" stroke="#2c3e54"/>
     <text x="744" y="342" font-size="26" fill="#e9f1fa" font-weight="600">tool runtime</text>
     <text x="744" y="378" font-size="19" fill="#9db2c7">scope / evidence / sarif / ioc / log / guard</text>
@@ -36,6 +36,6 @@
     <text x="104" y="518" font-size="19" fill="#9db2c7">provenance · reserved targets · no weaponized artifacts · no fabricated results · prompt-injection boundary</text>
   </g>
   <g font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#63788d">
-    <text x="80" y="600" font-size="18">Apache-2.0 · NOTICE with upstream pins · skills + references + native workflow capsules</text>
+    <text x="80" y="600" font-size="18">Apache-2.0 · NOTICE with four upstream pins · 16 skills · 10 workflows · 28 references · 44 gates</text>
   </g>
 </svg>

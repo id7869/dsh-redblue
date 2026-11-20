@@ -1,4 +1,4 @@
-dsh-redblue 0.1.0
+dsh-redblue 0.2.0
 Copyright 2026 dsh-redblue contributors
 
 This product includes methodology material derived from the following upstream
@@ -33,6 +33,15 @@ no upstream executable scripts, agent runtimes, or course dumps are included.
          condensed into references/red/strix-techniques.md, rewritten
    excluded: Strix runtime, Docker dependency, CLI, bundled knowledge base
              files as-is
+
+4) Reverse Engineering Agent (REA) - https://github.com/morluto/rea
+   commit: d74549e495c58eb4a560279fd9f05508401ea0a0 (rea-agents@6.9.0, skill v62)
+   license: MIT
+   used: target routing, evidence layering and lifecycle discipline for the
+         optional reverse lane (dsh-red-reverse + workflow/reverse.js), rewritten
+   excluded: REA runtime, provider binaries (Ghidra/JADX/ADB/...), installation
+             scripts and sample-execution instructions; no REA code or runtime
+             is bundled by dsh-redblue
 
 Modifications: upstream material was summarized and restructured into
 Chinese-language methodology skills and references; upstream prose is not

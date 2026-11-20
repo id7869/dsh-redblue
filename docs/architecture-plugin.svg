@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1117" viewBox="0 0 1440 1117" role="img" aria-labelledby="doc-title doc-desc" font-family="system-ui, Segoe UI, Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1308" viewBox="0 0 1440 1308" role="img" aria-labelledby="doc-title doc-desc" font-family="system-ui, Segoe UI, Helvetica, Arial, sans-serif">
 <title id="doc-title">dsh-redblue 插件架构图</title>
-<desc id="doc-desc">DSH Desktop profile → Cordis loader → cordis.patch.yml bundle patch → lib/index.js skills provider → 15 skills / 9 workflows / 27 references / tools / policy / schema / workDir artifacts.</desc>
+<desc id="doc-desc">DSH Desktop profile → Cordis loader → cordis.patch.yml bundle patch → lib/index.js skills provider → 16 skills / 10 workflows / 28 references / 44 gates / tools / policy / schema / workDir artifacts; optional external REA MCP lane.</desc>
 <defs>
 <marker id="ar-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3d82d6"/></marker>
 <marker id="ar-dim" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#7f95ab"/></marker>
@@ -9,13 +9,13 @@
 <marker id="ar-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#3fb37f"/></marker>
 <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#d63c4b"/><stop offset="0.55" stop-color="#3d82d6"/><stop offset="1" stop-color="#8b6cc9"/></linearGradient>
 </defs>
-<rect width="1440" height="1117" fill="#0b1119"/>
+<rect width="1440" height="1308" fill="#0b1119"/>
 <rect x="0" y="0" width="1440" height="6" fill="url(#accent)"/>
 <text x="48" y="54" font-size="29" font-weight="700" fill="#e9f1fa">dsh-redblue 插件架构</text>
 <text x="48" y="82" font-size="14.5" font-weight="400" fill="#a9bdd2">Plugin Architecture · DSH Desktop（profile=desktop）· bundle patch → Cordis loader → bundled skill provider → bundle 内容与产物</text>
-<text x="1392" y="54" font-size="12" font-weight="400" fill="#63788d" text-anchor="end">dsh-redblue 0.1.0 · DSH 0.2.2-rc.5 · 2026-11-20</text>
+<text x="1392" y="54" font-size="12" font-weight="400" fill="#63788d" text-anchor="end">dsh-redblue 0.2.0 · DSH 0.2.2-rc.5 · 2026-11-20</text>
 <rect x="40" y="110" width="1360" height="182" rx="16" fill="#0e1723" stroke="#24364a" stroke-width="1"/>
-<text x="64" y="136" font-size="12" font-weight="500" fill="#7f95ab">DSH 宿主 / HOST · profile=desktop（本机尚未启用 dsh-redblue；按 README §6 以 link: 安装并重启后生效）</text>
+<text x="64" y="136" font-size="12" font-weight="500" fill="#7f95ab">DSH 宿主 / HOST · profile=desktop（本机已 link 安装 dsh-redblue 0.2.0；bundles 含；重启 DSH 生效）</text>
 <rect x="64" y="152" width="304" height="118" rx="10" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
 <text x="82" y="178" font-size="14" font-weight="650" fill="#e9f1fa">DSH Desktop App</text>
 <text x="82" y="202" font-size="10.8" font-weight="400" fill="#a9bdd2">Electron 宿主 · dsh 0.2.2-rc.5</text>
@@ -25,7 +25,7 @@
 <text x="418" y="178" font-size="14" font-weight="650" fill="#e9f1fa">profile: desktop</text>
 <text x="418" y="202" font-size="10.8" font-weight="400" fill="#a9bdd2">~/.dsh/profiles/desktop/package.json</text>
 <text x="418" y="221" font-size="10.8" font-weight="400" fill="#a9bdd2">dependencies + dsh.profile.bundles</text>
-<text x="418" y="240" font-size="10.8" font-weight="400" fill="#a9bdd2">安装后追加 dsh-redblue（link:）</text>
+<text x="418" y="240" font-size="10.8" font-weight="400" fill="#a9bdd2">已追加 dsh-redblue（link: 0.2.0）</text>
 <rect x="736" y="152" width="304" height="118" rx="10" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
 <text x="754" y="178" font-size="14" font-weight="650" fill="#e9f1fa">Cordis loader</text>
 <text x="754" y="202" font-size="10.8" font-weight="400" fill="#a9bdd2">启动时按序应用 bundle patch 层</text>
@@ -39,7 +39,7 @@
 <line x1="372" y1="211" x2="394" y2="211" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
 <line x1="708" y1="211" x2="730" y2="211" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
 <line x1="1044" y1="211" x2="1066" y2="211" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
-<rect x="40" y="322" width="1360" height="649" rx="16" fill="#131d29" stroke="#2c3e54" stroke-width="1"/>
+<rect x="40" y="322" width="1360" height="666" rx="16" fill="#131d29" stroke="#2c3e54" stroke-width="1"/>
 <text x="64" y="350" font-size="13" font-weight="650" fill="#a9bdd2">dsh-redblue bundle（plugin root）· lib/ · skills/ · workflow/ · references/ · tools/ · policy/ · schema/</text>
 <line x1="720" y1="296" x2="720" y2="316" stroke="#3d82d6" stroke-width="2" marker-end="url(#ar-blue)"/>
 <rect x="734" y="305.5" width="195.02000000000004" height="18.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
@@ -48,32 +48,34 @@
 <rect x="64" y="366" width="4" height="96.5" rx="2" fill="#3d82d6"/>
 <text x="82" y="395.5" font-size="13.5" font-weight="650" fill="#e9f1fa">lib/index.js · bundled skills provider</text>
 <text x="82" y="423.5" font-size="11" font-weight="400" fill="#a9bdd2">PROVIDER_NAME = &quot;dsh-redblue&quot; · BUNDLED_SKILL_RANK = 600 · inject = [&quot;skills&quot;] · apply(ctx) → ctx.skills.registerProvider(() =&gt; provider)</text>
-<text x="82" y="440.5" font-size="11" font-weight="400" fill="#7f95ab">list() / get(candidate)：SKILL.md frontmatter 为单一事实源（12 键）；文件不可读时回退常量；get() 返回 frontmatter 之后的正文</text>
-<rect x="64" y="496.5" width="424" height="164.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
-<rect x="64" y="496.5" width="4" height="164.5" rx="2" fill="#d63c4b"/>
-<text x="82" y="526" font-size="13.5" font-weight="650" fill="#e9f1fa">skills/ · 15 × SKILL.md（bundled）</text>
+<text x="82" y="440.5" font-size="11" font-weight="400" fill="#7f95ab">16 条 SKILLS（含 red-reverse）；SKILL.md frontmatter 为单一事实源（12 键）；文件不可读时回退常量；get() 返回正文</text>
+<rect x="64" y="496.5" width="424" height="181.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="64" y="496.5" width="4" height="181.5" rx="2" fill="#d63c4b"/>
+<text x="82" y="526" font-size="13.5" font-weight="650" fill="#e9f1fa">skills/ · 16 × SKILL.md（bundled）</text>
 <text x="82" y="554" font-size="11" font-weight="400" fill="#a9bdd2">run · red-scope · red-recon · red-surface · red-discover</text>
-<text x="82" y="571" font-size="11" font-weight="400" fill="#a9bdd2">red-validate · red-exploit · red-post · rb-report</text>
-<text x="82" y="588" font-size="11" font-weight="400" fill="#a9bdd2">blue-hunt · detect · dfir · harden · purple-verify · rb-triage</text>
-<text x="82" y="605" font-size="11" font-weight="400" fill="#7f95ab">每个目录一个 SKILL.md：方法论 + 适用/不适用 + 安全边界</text>
-<text x="82" y="622" font-size="11" font-weight="400" fill="#7f95ab">12 键 frontmatter · 正文 ≤300 行 / ≤24 KiB（R6）</text>
-<text x="82" y="639" font-size="11" font-weight="400" fill="#7f95ab">list()/get() 注册为 bundled（rank=600）</text>
-<rect x="64" y="683" width="424" height="147.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
-<rect x="64" y="683" width="4" height="147.5" rx="2" fill="#d63c4b"/>
-<text x="82" y="712.5" font-size="13.5" font-weight="650" fill="#e9f1fa">references/ · 27 篇 + INDEX.md</text>
-<text x="82" y="740.5" font-size="11" font-weight="400" fill="#a9bdd2">shared 4 · red 13 · blue 9 · purple 1 = 27 篇</text>
-<text x="82" y="757.5" font-size="11" font-weight="400" fill="#a9bdd2">类目 15 · 参数 5 · 技术矩阵 1 · 纪律 4 · 台账 2</text>
-<text x="82" y="774.5" font-size="11" font-weight="400" fill="#7f95ab">INDEX.md：技能 → 参考的唯一映射与预算</text>
-<text x="82" y="791.5" font-size="11" font-weight="400" fill="#7f95ab">每篇 ≤48 KiB · 六键 provenance · 台账运行期不加载</text>
-<text x="82" y="808.5" font-size="11" font-weight="400" fill="#7f95ab">INDEX 预算：每阶段 ≤2 篇 / 合计 ≤120 KiB</text>
+<text x="82" y="571" font-size="11" font-weight="400" fill="#a9bdd2">red-validate · red-exploit · red-post · red-reverse</text>
+<text x="82" y="588" font-size="11" font-weight="400" fill="#a9bdd2">rb-report · blue-hunt · detect · dfir · harden</text>
+<text x="82" y="605" font-size="11" font-weight="400" fill="#a9bdd2">purple-verify · rb-triage（共 16 个）</text>
+<text x="82" y="622" font-size="11" font-weight="400" fill="#7f95ab">每个目录一个 SKILL.md：方法论 + 适用/不适用 + 安全边界</text>
+<text x="82" y="639" font-size="11" font-weight="400" fill="#7f95ab">12 键 frontmatter · 正文 ≤300 行 / ≤24 KiB（R6）</text>
+<text x="82" y="656" font-size="11" font-weight="400" fill="#7f95ab">list()/get() 注册为 bundled（rank=600）</text>
+<rect x="64" y="700" width="424" height="164.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
+<rect x="64" y="700" width="4" height="164.5" rx="2" fill="#d63c4b"/>
+<text x="82" y="729.5" font-size="13.5" font-weight="650" fill="#e9f1fa">references/ · 28 篇 + INDEX.md</text>
+<text x="82" y="757.5" font-size="11" font-weight="400" fill="#a9bdd2">shared 4 · red 14 · blue 9 · purple 1 = 28 篇</text>
+<text x="82" y="774.5" font-size="11" font-weight="400" fill="#a9bdd2">类目 15 · 参数 5 · 技术矩阵 2 · 纪律 4 · 台账 2</text>
+<text x="82" y="791.5" font-size="11" font-weight="400" fill="#7f95ab">REA 逆向参考 1 篇（reverse-artifacts，MIT）</text>
+<text x="82" y="808.5" font-size="11" font-weight="400" fill="#7f95ab">INDEX.md：技能 → 参考的唯一映射与预算</text>
+<text x="82" y="825.5" font-size="11" font-weight="400" fill="#7f95ab">每篇 ≤48 KiB · 六键 provenance · 台账运行期不加载</text>
+<text x="82" y="842.5" font-size="11" font-weight="400" fill="#7f95ab">INDEX 预算：每阶段 ≤2 篇 / 合计 ≤120 KiB</text>
 <rect x="512" y="496.5" width="424" height="164.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
 <rect x="512" y="496.5" width="4" height="164.5" rx="2" fill="#3d82d6"/>
-<text x="530" y="526" font-size="13.5" font-weight="650" fill="#e9f1fa">workflow/ · 9 个原生胶囊</text>
+<text x="530" y="526" font-size="13.5" font-weight="650" fill="#e9f1fa">workflow/ · 10 个原生胶囊</text>
 <text x="530" y="554" font-size="11" font-weight="400" fill="#a9bdd2">assess · recon · exploit · post · hunt</text>
-<text x="530" y="571" font-size="11" font-weight="400" fill="#a9bdd2">ir · purple · triage · harden</text>
-<text x="530" y="588" font-size="11" font-weight="400" fill="#7f95ab">阶段机：scope → … → report → seal（每个 4–7 阶段）</text>
+<text x="530" y="571" font-size="11" font-weight="400" fill="#a9bdd2">ir · purple · triage · harden · reverse</text>
+<text x="530" y="588" font-size="11" font-weight="400" fill="#7f95ab">assess 7 阶段；reverse 6 阶段（scope→…→seal）</text>
 <text x="530" y="605" font-size="11" font-weight="400" fill="#7f95ab">由原生 workflow 工具执行：脚本无 fs / 网络 / Node API</text>
-<text x="530" y="622" font-size="11" font-weight="400" fill="#7f95ab">args 校验 → 门禁 → 编排 → 确定性产物 → SHA256</text>
+<text x="530" y="622" font-size="11" font-weight="400" fill="#7f95ab">reverse：runtime 默认 false；REA 外部可选/blocked</text>
 <text x="530" y="639" font-size="11" font-weight="400" fill="#7f95ab">package.json（commonjs）仅用于 node --check</text>
 <rect x="512" y="683" width="424" height="198.5" rx="12" fill="#172333" stroke="#2c3e54" stroke-width="1"/>
 <rect x="512" y="683" width="4" height="198.5" rx="2" fill="#3fb37f"/>
@@ -81,11 +83,11 @@
 <text x="530" y="740.5" font-size="11" font-weight="400" fill="#a9bdd2">公共 5 件：findings.json · coverage.json</text>
 <text x="530" y="757.5" font-size="11" font-weight="400" fill="#a9bdd2">report.md · exports/results.sarif · scan-manifest.json</text>
 <text x="530" y="774.5" font-size="11" font-weight="400" fill="#7f95ab">每 workflow 另有 scope.json + 阶段产物</text>
-<text x="530" y="791.5" font-size="11" font-weight="400" fill="#7f95ab">recon/surface · exploit-log · post · hunt-plan/results</text>
-<text x="530" y="808.5" font-size="11" font-weight="400" fill="#7f95ab">intake/timeline/containment · coverage-matrix</text>
-<text x="530" y="825.5" font-size="11" font-weight="400" fill="#7f95ab">baseline/gaps/remediation · state/findings.jsonl</text>
-<text x="530" y="842.5" font-size="11" font-weight="400" fill="#7f95ab">seal 复算 bytes + sha256；guard-evidence.jsonl</text>
-<text x="530" y="859.5" font-size="11" font-weight="400" fill="#7f95ab">schema/ 6 个 draft-07 约束产物结构</text>
+<text x="530" y="791.5" font-size="11" font-weight="400" fill="#7f95ab">reverse：reverse.json · evidence/rea-evidence.json</text>
+<text x="530" y="808.5" font-size="11" font-weight="400" fill="#7f95ab">recon/surface · exploit-log · post · hunt-plan/results</text>
+<text x="530" y="825.5" font-size="11" font-weight="400" fill="#7f95ab">intake/timeline/containment · coverage-matrix</text>
+<text x="530" y="842.5" font-size="11" font-weight="400" fill="#7f95ab">baseline/gaps/remediation · state/findings.jsonl</text>
+<text x="530" y="859.5" font-size="11" font-weight="400" fill="#7f95ab">seal 复算 bytes + sha256；guard-evidence.jsonl</text>
 <rect x="960" y="496.5" width="424" height="164.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
 <rect x="960" y="496.5" width="4" height="164.5" rx="2" fill="#d9a13b"/>
 <text x="978" y="526" font-size="13.5" font-weight="650" fill="#e9f1fa">tools/ · 零依赖工具运行时</text>
@@ -95,40 +97,58 @@
 <text x="978" y="605" font-size="11" font-weight="400" fill="#7f95ab">recipes list/show · guard（10 条白名单）</text>
 <text x="978" y="622" font-size="11" font-weight="400" fill="#7f95ab">sanitize-lint.mjs：R1–R12 · 36 项检查（--strict）</text>
 <text x="978" y="639" font-size="11" font-weight="400" fill="#7f95ab">tools/lib：11 个模块 · recipes.json：10 条配方</text>
-<rect x="960" y="683" width="424" height="113.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
-<rect x="960" y="683" width="4" height="113.5" rx="2" fill="#d9a13b"/>
+<rect x="960" y="683" width="424" height="130.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
+<rect x="960" y="683" width="4" height="130.5" rx="2" fill="#d9a13b"/>
 <text x="978" y="712.5" font-size="13.5" font-weight="650" fill="#e9f1fa">policy/ · 人读规范（机器同源）</text>
-<text x="978" y="740.5" font-size="11" font-weight="400" fill="#a9bdd2">authorization.md：39 项 G-* 硬拒绝注册表</text>
-<text x="978" y="757.5" font-size="11" font-weight="400" fill="#7f95ab">sanitization.md：R1–R12 + 白名单 + 失败级别</text>
-<text x="978" y="774.5" font-size="11" font-weight="400" fill="#7f95ab">gate.mjs / sanitize-lint.mjs 与 policy 同源</text>
-<rect x="960" y="818.5" width="424" height="130.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
-<rect x="960" y="818.5" width="4" height="130.5" rx="2" fill="#d9a13b"/>
-<text x="978" y="848" font-size="13.5" font-weight="650" fill="#e9f1fa">schema/ · 6 个 draft-07</text>
-<text x="978" y="876" font-size="11" font-weight="400" fill="#a9bdd2">scope · finding · evidence</text>
-<text x="978" y="893" font-size="11" font-weight="400" fill="#a9bdd2">report · coverage · manifest</text>
-<text x="978" y="910" font-size="11" font-weight="400" fill="#7f95ab">输入/产物结构契约（draft-07）</text>
-<text x="978" y="927" font-size="11" font-weight="400" fill="#7f95ab">finding 含 5 个可选复核字段</text>
+<text x="978" y="740.5" font-size="11" font-weight="400" fill="#a9bdd2">authorization.md：44 项 G-*（39 v0.1 + 5 v0.2）</text>
+<text x="978" y="757.5" font-size="11" font-weight="400" fill="#7f95ab">REA lane：G-TGT-05 · G-REA-01/02 · G-RT-01/02</text>
+<text x="978" y="774.5" font-size="11" font-weight="400" fill="#7f95ab">sanitization.md：R1–R12 + 第 4 上游 REA（MIT）</text>
+<text x="978" y="791.5" font-size="11" font-weight="400" fill="#7f95ab">gate.mjs / sanitize-lint.mjs 与 policy 同源</text>
+<rect x="960" y="835.5" width="424" height="130.5" rx="12" fill="#14202e" stroke="#2c3e54" stroke-width="1"/>
+<rect x="960" y="835.5" width="4" height="130.5" rx="2" fill="#d9a13b"/>
+<text x="978" y="865" font-size="13.5" font-weight="650" fill="#e9f1fa">schema/ · 6 个 draft-07</text>
+<text x="978" y="893" font-size="11" font-weight="400" fill="#a9bdd2">scope · finding · evidence</text>
+<text x="978" y="910" font-size="11" font-weight="400" fill="#a9bdd2">report · coverage · manifest</text>
+<text x="978" y="927" font-size="11" font-weight="400" fill="#7f95ab">输入/产物结构契约（draft-07）</text>
+<text x="978" y="944" font-size="11" font-weight="400" fill="#7f95ab">finding 含 5 个可选复核字段</text>
 <line x1="276" y1="462.5" x2="276" y2="490.5" stroke="#8b6cc9" stroke-width="1.8" marker-end="url(#ar-purple)"/>
 <rect x="288" y="476.5" width="71.6" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
-<text x="295" y="487.5" font-size="10" font-weight="500" fill="#a9bdd2">注册 15 技能</text>
+<text x="295" y="487.5" font-size="10" font-weight="500" fill="#a9bdd2">注册 16 技能</text>
 <line x1="724" y1="462.5" x2="724" y2="490.5" stroke="#7f95ab" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
 <rect x="736" y="476.5" width="147.7" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
 <text x="743" y="487.5" font-size="10" font-weight="500" fill="#a9bdd2">原生 workflow 工具读取脚本</text>
-<line x1="276" y1="663" x2="276" y2="677" stroke="#7f95ab" stroke-width="1.5" marker-end="url(#ar-dim)"/>
-<rect x="288" y="665.5" width="63.97" height="17.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
-<text x="295" y="676" font-size="9.5" font-weight="500" fill="#63788d">INDEX 加载</text>
+<line x1="276" y1="680" x2="276" y2="694" stroke="#7f95ab" stroke-width="1.5" marker-end="url(#ar-dim)"/>
+<rect x="288" y="682.5" width="63.97" height="17.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="295" y="693" font-size="9.5" font-weight="500" fill="#63788d">INDEX 加载</text>
 <line x1="724" y1="663" x2="724" y2="677" stroke="#3fb37f" stroke-width="1.5" marker-end="url(#ar-green)"/>
 <rect x="736" y="665.5" width="61.5" height="17.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
 <text x="743" y="676" font-size="9.5" font-weight="500" fill="#63788d">确定性生成</text>
 <line x1="1172" y1="663" x2="1172" y2="677" stroke="#d9a13b" stroke-width="1.5" marker-end="url(#ar-dim)"/>
 <rect x="1184" y="665.5" width="52" height="17.5" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
 <text x="1191" y="676" font-size="9.5" font-weight="500" fill="#63788d">同源实现</text>
-<line x1="48" y1="1013" x2="88" y2="1013" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
-<text x="96" y="1017" font-size="10.5" font-weight="400" fill="#63788d">装载 / 调用 / 数据流</text>
-<line x1="268" y1="1013" x2="308" y2="1013" stroke="#7f95ab" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
-<text x="316" y="1017" font-size="10.5" font-weight="400" fill="#63788d">注记 / 可选 / 独立入口</text>
-<line x1="500" y1="1013" x2="540" y2="1013" stroke="#d63c4b" stroke-width="1.8" marker-end="url(#ar-red)"/>
-<text x="548" y="1017" font-size="10.5" font-weight="400" fill="#63788d">拒绝分支（fail-closed）</text>
-<text x="48" y="1043" font-size="11" font-weight="400" fill="#63788d">约束：零 npm 依赖 · 默认 report-only · dryRun=true 默认 · 产物确定性（stableStringify + SHA256 封存）· 净化门禁 R1–R12（--strict 发布门禁）</text>
-<text x="48" y="1063" font-size="11" font-weight="400" fill="#63788d">本图只画已实现能力；数字口径与命令见 docs/architecture.md §4（15 技能 / 9 workflow / 27 参考 / 6 schema / 10 recipes / 39 G-*）。</text>
+<rect x="40" y="1008" width="900" height="158" rx="12" fill="#0e1723" stroke="#4f3f78" stroke-width="1" stroke-dasharray="8 5"/>
+<text x="64" y="1034" font-size="13.5" font-weight="650" fill="#8b6cc9">REA MCP · 外部可选（不打包、不自动安装）</text>
+<text x="64" y="1058" font-size="10.6" font-weight="400" fill="#a9bdd2">rea-agents@6.9.0 · MIT · commit d74549e4… · skill v62 · 255 tools / 196 CLI / 6 prompts</text>
+<text x="64" y="1078" font-size="10.6" font-weight="400" fill="#7f95ab">可用：Ghidra 12.1.4 / PE·ELF·托管程序集 / ASAR·Electron fuses / APK 清单与签名 / 证据导出</text>
+<text x="64" y="1098" font-size="10.6" font-weight="400" fill="#7f95ab">Windows 缺口：JADX · ADB · apktool · WABT · 固件 · GDB/rizin · EVM · pwntools · TShark · JEB · Hopper</text>
+<text x="64" y="1118" font-size="10.6" font-weight="400" fill="#d9a13b">缺失语义：REA 未注册 → blocked（G-REA-01/02）；provider 缺失 → 降级并列出；不伪造、不自动安装</text>
+<rect x="960" y="1008" width="440" height="158" rx="12" fill="#2a1520" stroke="#7e2a36" stroke-width="1"/>
+<text x="984" y="1034" font-size="13.5" font-weight="650" fill="#d63c4b">blocked 分支（reverse lane）</text>
+<text x="984" y="1058" font-size="11" font-weight="650" fill="#e9f1fa">status=blocked · exitCode=1</text>
+<text x="984" y="1078" font-size="10.6" font-weight="400" fill="#a9bdd2">blockedBy=[G-REA-01/02] · sealed=false</text>
+<text x="984" y="1098" font-size="10.6" font-weight="400" fill="#a9bdd2">0 分析 agent · artifacts=[]</text>
+<text x="984" y="1118" font-size="10.6" font-weight="400" fill="#7f95ab">remediation：npm/rea setup/doctor 指引</text>
+<text x="984" y="1138" font-size="10.6" font-weight="400" fill="#7f95ab">目标不可读/哈希不符同样 blocked</text>
+<line x1="720" y1="990" x2="720" y2="1002" stroke="#8b6cc9" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#ar-purple)"/>
+<rect x="734" y="990" width="184.79999999999998" height="18" rx="5" fill="#0b1119" stroke="#24364a" stroke-width="0.8"/>
+<text x="741" y="1001" font-size="10" font-weight="500" fill="#a9bdd2">reverse.js 仅当宿主已注册 REA MCP</text>
+<line x1="942" y1="1088" x2="954" y2="1088" stroke="#d63c4b" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#ar-red)"/>
+<line x1="48" y1="1204" x2="88" y2="1204" stroke="#3d82d6" stroke-width="1.8" marker-end="url(#ar-blue)"/>
+<text x="96" y="1208" font-size="10.5" font-weight="400" fill="#63788d">装载 / 调用 / 数据流</text>
+<line x1="268" y1="1204" x2="308" y2="1204" stroke="#7f95ab" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#ar-dim)"/>
+<text x="316" y="1208" font-size="10.5" font-weight="400" fill="#63788d">注记 / 可选 / 独立入口</text>
+<line x1="500" y1="1204" x2="540" y2="1204" stroke="#d63c4b" stroke-width="1.8" marker-end="url(#ar-red)"/>
+<text x="548" y="1208" font-size="10.5" font-weight="400" fill="#63788d">拒绝分支（fail-closed）</text>
+<text x="48" y="1234" font-size="11" font-weight="400" fill="#63788d">约束：零 npm 依赖 · 默认 report-only · dryRun=true 默认 · 产物确定性（stableStringify + SHA256 封存）· 净化门禁 R1–R12（--strict 发布门禁）</text>
+<text x="48" y="1254" font-size="11" font-weight="400" fill="#63788d">本图只画已实现能力；REA 为可选外部 MCP（虚线，不打包）；数字口径见 docs/architecture.md §4（16 技能 / 10 workflow / 28 参考 / 6 schema / 10 recipes / 44 G-*）。</text>
 </svg>

@@ -1,7 +1,7 @@
 {
   "name": "dsh-redblue",
-  "version": "0.1.0",
-  "description": "Authorized red/blue/purple security testing for DSH: 15 bundled methodology skills + 9 gated native workflow capsules + a zero-dependency tool runtime, sanitization-gated, report-only by default.",
+  "version": "0.2.0",
+  "description": "Authorized red/blue/purple security testing for DSH: 16 bundled methodology skills + 10 gated native workflow capsules + a zero-dependency tool runtime, sanitization-gated, report-only by default.",
   "type": "module",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",

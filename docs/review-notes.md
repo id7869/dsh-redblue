@@ -689,3 +689,147 @@
 - 未重跑原生 `workflow` 工具 E2E（避免改变 `.work/smoke`）；hunt 行为以自建 `node:vm` 宿主 + 完整 stub 回复验证（clean/0/sealed/7 artifacts）。
 - 未运行真实工具配方/网络；未修改 `.work/`、skills/references/policy 或其它 workflow/test 文件。
 - 改动面：编辑前后对插件全部文件再做 SHA256 比对，**唯一变化为本文件**；本轮临时探针脚本位于系统临时目录（`%TEMP%/dsh-review2`），未进入插件目录。
+
+---
+
+# 第 5 部分：t48 v0.2.0 最终复审（final）
+
+## 18. t48 v0.2.0 复审记录
+
+- 复审人：reviewer2（AgentTeams member；t48 final review）
+- 复审时间：2026-11-20 16:28–16:56 +08:00；主机 Windows x64 / Node v24.22.1
+- 复审对象：v0.2.0 **当前字节**（内容 t35 + 运行时 t36 + 文档/入口 t43 + lib 同步 t46；含 t47 验证后的工作区）。§16/§17 的 v0.1 verdict 不覆盖 v0.2.0。
+- 方式：**只读 + 独立构造/复算**。除本文件外未修改任何被评审文件（编辑前后对插件全部文件（排除 `.git`）做 SHA256 比对，见 §18.10）；未触发网络；未运行真实工具配方；未重跑真实 workflow E2E（`.work` 不存在，按已批准的 waiver 只读历史证据）。
+- **结论：PASS（0 blocker / 0 high）**。v0.2.0 的代码、内容、运行时与已列验收项均可交付：reverse 探测/降级真实、runtime 四条件不可绕过、v0.1 的 9 个 workflow 与 39 个 `G-*` 零回归、10 个胶囊共享段一致、run/lib 344 码点逐字一致、REA 内容与许可合规、16/10/28/44 计数一致。另有 **F1（medium）随包分发的 install/delivery/preview 仍是 v0.1.0** 与 4 条 low 文档/一致性残余（§18.8），不构成 blocker/high，建议发布前由 t45 等价任务修复；因不在本任务 acceptance 枚举的 5 个文档内，按“无 blocker/high”判 pass 并如实记录。
+
+### 18.1 本轮实际执行的检查（命令与结果）
+
+| 检查 | 命令/方法 | 结果 |
+|---|---|---|
+| 测试 | `node --test test/{scaffold,sanitize,workflow,tool-runtime}.test.mjs` | **116 tests / 115 pass / 0 fail / 1 skip**，exit 0；逐文件 scaffold 16、sanitize 23+1 skip、workflow 53、tool-runtime 23 |
+| 净化门禁 | `node tools/sanitize-lint.mjs --strict --json dsh-redblue` | **90 文件 / 0 blocker / 2 warning**（R11：purple-verify:3、red-exploit:3，assembly §4 受理），exit 0 |
+| 语法 | 全部 `.js/.mjs` `node --check` | **28/28**（lib 1 / workflow 10 / tools 2 / tools-lib 11 / test 4） |
+| 版本/结构 | `package.json` + 目录/清单 | **0.2.0**、files 22 全存在、依赖/开发依赖为空；**16 技能 / 10 workflow / 28 参考（+INDEX）/ 6 schema / 10 recipes / 44 门禁**；插件内 0 `.py`、无 `node_modules`、无临时脚本；`.work` 不存在 |
+| v0.1 零回归 | 9 个 v0.1 workflow SHA256 vs 我 t32 保存的 v0.1 末态快照 | **9/9 逐字节相同**（因此 39 个既有 `G-*` 文本/顺序未变） |
+| 共享核心 | 10 个胶囊的 normalize/exclusion/limits/finalize 段哈希 | norm `e799b749…`、excl `8e0a96be…`、limits `54f3f88b…`、finalize `23900613…` **10/10 同哈希**；reverse preflight 因新增 G-TGT-05/G-RT 段不同（`9e7d8be8…`），其余 9 个 preflight `358b…`/`6cd8…` 与 v0.1 相同 |
+| reverse 门禁探针 | 自建 `node:vm` 宿主（25 拒绝构造 + 6 blocked + 静态/ runtime/证据全量跑，见 §18.2–18.4） | 24/25 与预期一致（1 条为我的期望修正，仍安全拒绝）；6/6 blocked 形状正确；runtime/证据/降级全通过 |
+| run/lib 一致 | frontmatter vs `lib/index.js` 回退 description | **344/344 码点、逐字相等**；lib 16 条、目录与磁盘 16/16 对应 |
+| 内容 | `skills/red-reverse/SKILL.md` + `references/red/reverse-artifacts.md` | SKILL 198 行/16,870 B、12 键、desc 283 码点；参考 244 行/24,079 B、六键 provenance、11 路由行、26 provider 行、K-1..K-12、4 个 reverse 阶段预算 |
+| REA 环境实测 | 本机 `mcp__rea__binary_session`（只读，`detail=summary`） | server `rea-agents 6.9.0`、skill v62、SDK 2.3.1、protocol 2026-07-28、catalog **255 MCP / 196 CLI / 6 prompts**；provider 状态与文档 §3/§4 逐项一致（见 §18.5） |
+| 文档计数 | README/DETAIL/architecture/value-extraction/INDEX | 16/10/28/44 一致；INDEX 28 个参考行 + 4 个 reverse 阶段预算；SVG XML_OK、无 script/href、viewBox 1440×1308 / 1440×1864 |
+| 许可/耦合 | NOTICE/package/provenance | 四上游 pin（含 REA `d74549e4…`/`rea-agents@6.9.0`/MIT）；REA 未打包；零 npm 依赖；`references/red/reverse-artifacts.md:1` 起六键 provenance |
+| 改动面 | 插件全文件（排除 `.git`）SHA256 前后比对 | **唯一变化为本文件**（§18.10） |
+
+### 18.2 探测/降级真实性（blocked 与 provider 缺口）
+
+独立构造 6 个 blocked 场景（agent 只回复 gate/不可用；其余阶段 stub）：
+
+| 场景 | 结果 |
+|---|---|
+| probe 返回 `{gate:"G-REA-01",reason,remediation}` | `status=blocked`、`exitCode=1`、`code=1`、`blockedBy=["G-REA-01"]`、`artifacts=[]`、`sealed=false`、`remediation.install/register/verify` 齐备、**0 分析 agent**（仅 scope/probe 的 1 次 agent 调用） |
+| probe `reaAvailable=false` | 同上，`G-REA-01` |
+| probe target `sha256=""`、`bytes=0` | `G-REA-02` blocked，`artifacts=[]`，remediation 为路径/权限/哈希校验指引 |
+| inventory 返回 `{gate:"G-REA-02"}` | `G-REA-02` blocked、`artifacts=[]`、无 report-write/manifest |
+| inventory 的 `target.sha256` 与 probe 不一致 | `G-REA-02` blocked（“可能已被替换或读取失败”） |
+| inventory 返回 `{gate:"G-REA-01"}` | `G-REA-01` blocked、`artifacts=[]` |
+
+- provider 缺失**不阻塞**：probe 返回 `jadx.available=false` 时静态 run 仍 `status=clean/exit0/sealed=true`，`reverse.json.degraded` 含 jadx 与 route limitation（2 项），`limitations` 记录 `degraded:`；runtime provider 缺失时 `runtime.requested=true`、`executed=false`、`stages.runtime.status=completed`（notes “requested but not executed”），退化为静态结果，不 blocked。
+- 工具计数**不写死**：构造 `catalog.mcpTools=10` 且 `toolAvailability=7/0/0`（和≠目录数）→ 运行成功且 `limitations` 追加 “三组计数之和 7 != catalog.mcpTools 10”；代码中无 255/133/59/81 的写死分支（grep 仅命中 SHA 常量与 UTF-8 编码常量）。
+- **未把 Windows 缺失能力写成可用**：本机 `binary_session` 实测与参考 §3.2/§4 逐项一致——JADX `provider_missing`、ADB/apktool `provider_unavailable`、WABT `provider_missing`、Binwalk/Unblob、GDB/rizin、EVM、pwntools、TShark 字段、Wakaru、signal、macOS 原生、进程捕获 `unsupported_host`、JEB `provider_missing`、Hopper `unsupported_host`、IDA/Kuna `not_configured`；`inspect_binary_hardening` 仍在 available 工具组（对应 K-1“工具存在但 Windows 调用 schema 错误”）。文档没有把上述能力标成可用。
+
+### 18.3 reverse 门禁（runtime 四条件、G-TGT-05、静态 passive）
+
+- **静态默认 passive**：`runtime` 缺省 false 时只跑 scope→inventory→static→report→seal，`reverse-runtime` agent 调用 **0** 次；`coverage.phases.runtime.status=skipped/agents=0`。
+- **runtime 四条件**（自建构造，全部 0 agent 拒绝）：
+  - `runtime=true` + `mode=passive` → `G-RT-01`（错误含 mode/dryRun 当前值）；
+  - `runtime=true` + `mode=active` + `dryRun=true` → `G-RT-01`；
+  - `runtime=true` + `mode=active` + `dryRun=false` 缺 `confirm` → `G-RT-02`；
+  - `confirm` 不匹配（`other.exe`/大小写不同）→ `G-RT-02`；
+  - `runtime=false` 却给 `confirm` → `G-RT-02`（fail-closed）；
+  - `runtime` 非 boolean/“true”/“false” → `G-ARG-01`。
+- **放行路径**：`mode=active`+`runtime=true`+`dryRun=false`+`confirm` 与唯一 source 归一化值相等（正斜杠/反斜杠/尾斜杠均可，大小写严格）→ 跑 runtime 阶段；provider 缺失 `executed=false` 不阻塞；`executed=true` 时 actions/cleanup/environment 落入 `reverse.json.runtime`。
+- **G-TGT-05**：2 个 source / 0 个 source（domain）/空 targets → `G-TGT-05`；恰好 1 个 source 放行。
+- **既有 39 `G-*` 未弱化**：9 个 v0.1 workflow 与 t32 快照逐字节相同；本次反向构造仍命中 `G-ARG-01`、`G-PATH-01/02/03`、`G-CONC-01`、`G-CONF-01`、`G-AUTH-01/03/07`、`G-TGT-02/03/05`、`G-MODE-01`、`G-WIN-03`、`G-BUD-01`、`G-DH-03`、`G-RT-01/02`，均为 `rejected/exit1/code1` + 0 agent。
+- 备注（期望修正）：`kind="source"` 的相对路径在 `normalizeTarget` 阶段即被拒绝为 `G-TGT-03`（并触发 `G-TGT-05`），不是 `G-PATH-03`；仍是 fail-closed/0 agent，且该行为 v0.1 已存在，不构成 v0.2 回归。
+
+### 18.4 内容可执行性（非工具名罗列）
+
+- `skills/red-reverse/SKILL.md`（198 行/16,870 B，12 键，desc 283 码点）抽样：§3 路由矩阵 10 类 + unknown，每类给判定、首选工具族、**最小证据**、runtime、主要限制；§2 目标准入（SHA256/格式/降级路径、open_binary 的 `targetExecuted=false` 与 close_binary）；§5 runtime 门禁（四条件、允许动作、停止条件、清理顺序、provider 缺失不阻塞）；§6 证据纪律（locator=`rea:<evidence_id>#<operation>`、observed/derived/inferred/unknown、confidence 只降不升、authority、证据包敏感性与 `deterministic=false`）；§7 候选阈值（静态 only 最高 high、critical 仅 runtime 观察/明文凭据）；9 条禁止事项；4 元素安全边界；兄弟技能边界与参考预算。
+- **抽样核对（PE/ELF/托管/APK/ASAR/WASM/固件/PCAP/Electron）**：每条路由都给了可执行的最小证据（如 PE 导入表+加载配置/证书、ELF notes/unwind、托管 MVID+成员/IL 锚、APK 包清单+签名+类/方法、ASAR 应用图+fuses、WASM 导入导出+WAT 摘要、固件区域/熵+子镜像、PCAP 端点/DNS/SNI 或字段、Electron fuses+CDP 观察）及“不能下的结论”，不是工具清单。
+- `references/red/reverse-artifacts.md`（244 行/24,079 B）：11 行路由表 + “按问题选工具”；§2 证据分层/ID/证据包/禁止清单；§3 计数口径（255=133+63+59，88 组=49+13+7+4+15，并保留 81 组旧口径差异说明）+ 26 行 Windows 能力矩阵（缺失项与 remediation）；§4 K-1..K-12（K-1 含错误原文）；§5 findings/report/coverage/SARIF 映射；§6 明确不能下的 8 条结论；§7 MIT/不打包/升级纪律。
+- 与 live REA 对照：catalog 255/196/6、server 6.9.0、skill v62、protocol 2026-07-28 与参考 §3.1 一致；所有 Windows provider 状态与 §3.2/§4 一致（见 §18.2）。**内容可执行且未把缺失能力写成可用**。
+
+### 18.5 可发现性、计数与文档
+
+- 入口技能：`skills/run/SKILL.md` description **344 码点**、**10 个授权门禁工作流**（含 reverse/REA 触发词），与 `lib/index.js` 回退 description 逐字相等；路由表第 45 行 `reverse.js`（runtime/confirm 说明）、第 83–84 行两条 reverse args 示例、第 96 行 runtime 门禁、第 112 行 blocked 转述、第 103 行 17 类阶段产物清单。
+- 计数：README/DETAIL/architecture/value-extraction 均含 **16 技能 / 10 workflow / 28 参考 / 44 门禁**；`references/INDEX.md` 28 个参考行 + `reverse:scope/inventory-static/runtime/report` 4 条加载预算；`schema` 6、`recipes` 10 未变；`policy/authorization.md` 44 行 `G-*`（39 旧 + 5 新，行 151–155）。
+- SVG：两张架构图 XML_OK（`xml.etree` 解析通过）、无 `script/href/javascript/on*`，viewBox 1440×1308 与 1440×1864，含 16/10/28/44 与 REA/blocked/runtime 分片。
+- **F1（见 §18.8）**：随包分发的 `docs/install.md`、`docs/delivery-summary.md`、`docs/preview.svg` 仍是 v0.1.0 内容（15/9/27/39、0.1.0、99 测试、无 REA lane），与 v0.2.0 不符；三者均在 `package.json files` 内（`:26`、`:33`、`:34`），`preview.svg:26/29` 仍写 “15 skills / 9 workflows”。
+
+### 18.6 耦合与许可
+
+- REA **未打包**：`package.json` `dependencies`/`devDependencies` 为空；插件内无 `node_modules`、无 `rea-agents` 源码/二进制/安装脚本（`find -iname '*rea*'` 仅命中 README/两篇参考文本）；`docs/design-addendum` 不随包。
+- **pin 与 MIT**：`NOTICE:37–43` REA `morluto/rea`、commit `d74549e495c58eb4a560279fd9f05508401ea0a0`（`rea-agents@6.9.0`，skill v62）、MIT、排除运行时/二进制/安装脚本；`references/INDEX.md:2` 四 commit、`:9` 四 pin；`skills/red-reverse/SKILL.md` 与 `references/red/reverse-artifacts.md` 六键 provenance 均含 REA repo/commit/MIT；`tools/sanitize-lint.mjs:41` 增 UPSTREAM.rea。
+- 净化：新增内容无凭据/真实域名/私有 IP（仅 `github.com` 上游链接）；lint 90/0/2；0 `.py`；插件根无临时脚本/导出。
+
+### 18.7 t37/t47 观察项与 V-1..V-8
+
+- t37（attempt 2）**PASS（0 blocker，7/7）**；O-1（测试分布 5/9/3→7/10/0）与 O-2（参考 27→28）已在 `docs/assembly-report.md` §11.2 V-7/V-8 **受理**（理由：落位差异/以 28 为准）。
+- t47 **PASS（0 blocker，7/7）**；O-3（run 不重复 16/28/44）与 O-4（reverse 32 口径）记为 info（`docs/verification-report.md:1004–1005`）。O-3 无矛盾；O-4 的“32”数值与我的独立计数一致（reverse preflight = 32），但解释中的“27 既有 + 5 新增”与“35−DS-04/05−OUT-01”不精确（见 F3）。
+- V-1..V-5、V-7、V-8：`docs/assembly-report.md` §11.2 **受理**（K-1 工具/Windows 缺口/ schema enum/report 模板/cordis 注释），本轮复核其现象仍与文档一致；**V-6 已由 t46 关闭**（lib 344 码点、116/115/1、scaffold 全绿），但 assembly §11.2 文本仍写“未闭环，需 t44”（F4）。
+- E2E waiver：`.work`/`.work/smoke` 不存在（未重建）；历史证据 `docs/smoke-report.md` §11（recon/assess 各 7 行、mismatch 0/7×2、status completed/exit0）与 `docs/verification-report.md` §15.6（14/14、completed/exit0/dryRun/passive）存在且未被改写；v0.2 未重跑真实 E2E，已在 §18.1 显式声明，符合 captain 批准的 waiver。
+
+### 18.8 Findings（本轮，file:line 级；F1 为 medium，其余 low）
+
+**F1（medium）随包分发的 install/delivery/preview 仍是 v0.1.0，与 v0.2.0 不符**
+
+- 位置：`docs/install.md:3`（“适用版本 0.1.0”）、`:17`（39 项 `G-*`）、`:18`（15 技能 + 9 工作流）、`:81/:396`（安装输出 0.1.0）、`:166`（15 个技能）；`docs/delivery-summary.md:1`（标题 0.1.0）、`:4`（15 技能/9 workflow）、`:14`（15/9/27/39）、`:16`（99 测试）、`:295/:297`（验收清单 15/9/39/99）；`docs/preview.svg:26/:29`（“15 skills / 9 workflows”）。三者均在 `package.json` `files`（`:26/:33/:34`）。
+- 问题：v0.2.0 已 16/10/28/44、测试 116、有 reverse/REA lane；安装手册仍描述 v0.1 的 15/9/39 且未给出 REA 可选依赖（`rea-agents@6.9.0` 安装/MCP 注册/`REA_*` 环境变量）、未装 REA 的 blocked 降级与升级/回滚说明；交付摘要与插件详情 preview 亦为旧版。t45（本应更新这三者）被取消，故未闭环。
+- 影响：不改变门禁/落盘/安全语义；运行期 `G-REA-01` 的 remediation 仍能给出安装指引，README/DETAIL 也覆盖 REA lane；但作为“发布前交付文档/详情图”会误导安装者（版本与能力计数错误），属发布质量问题。
+- requiredFix：由 t45 等价任务把 `install.md`/`delivery-summary.md` 更新到 0.2.0（16/10/28/44、测试 116、REA 可选依赖/注册/环境变量、blocked 降级、已知限制、重启/回滚）并更新 `preview.svg` 为 16/10（或暂从 `package.json files` 移除三者直至更新）；属文档/资产任务，无需改代码。
+
+**F2（low）`skills/red-reverse/SKILL.md` 输入表两个默认值与实现/契约不一致**
+
+- 位置：`skills/red-reverse/SKILL.md:48`（`maxConcurrency` 默认 4）、`:50`（`dryRun=true` “默认只输出计划与探测；false 才做静态采集”）。
+- 事实：`workflow/reverse.js:647` 默认 `defaultMaxConcurrency=1`（addendum §3.2 `:252`）；`workflow/reverse.js:654` 的 dryRun 只影响 runtime（`G-RT-01`），静态只读分析在 `dryRun=true` 下照常执行（addendum `:253`、t36 测试①默认 dryRun 下产出 8 件产物）。
+- 影响：文档级误导（用户会以为默认不分析、并发为 4）；不影响门禁与产物。
+- requiredFix：`:48` 改 1（可写“1–8，可调”）；`:50` 改为“默认 true；静态只读照常执行，仅 runtime 执行类要求 false（G-RT-01）”。
+
+**F3（low）`docs/architecture.md` 的 reverse 门禁拆解不精确**
+
+- 位置：`docs/architecture.md:48` 与 `:201`（“reverse 取 32 = 27 既有 + 5 新增”）。
+- 事实：我独立计数 reverse preflight = **32**（29 个 v0.1 preflight 门 + 3 个新增 preflight 门 `G-TGT-05`/`G-RT-01`/`G-RT-02`）；`G-REA-01/02` 是阶段级、`G-OUT-01` 是写盘阶段级；`G-DS-04/05` 在 dataSources 含 baseline 时仍可达——故 t47 O-4 的“35−DS-04/05−OUT-01=32”与该拆解均不准确。数值 32 本身正确。
+- requiredFix：改为“reverse preflight 取 32（29 既有 + 3 新增）；另 G-REA-01/02 为阶段级 gate”；或直接写“35 文本 ID = 32 preflight + G-OUT-01 + G-REA-01/02”。
+
+**F4（low）`docs/assembly-report.md` §11.2 的 V-6 状态已过期**
+
+- 位置：`docs/assembly-report.md:212`、`:236`（“V-6…未闭环，需 t44 同步 lib/test”）、`:269/:273`（“需 t44 关闭”）。
+- 事实：t46 已同步 `lib/index.js`（344 码点逐字相等）并恢复 116/115/1/0 fail；t47 §19 已复验。当前 assembly 仍宣称未闭环，与当前字节不符（状态记录过期，不是代码问题）。
+- requiredFix：把 V-6 状态改为“closed（t46：lib 344 码点、4 测试 116/115/1；t47 §19 复验）”，并在 §11.3 变更清单补 t46 两句；或加一行“§11.5 后续状态更新”。
+
+**F5（low）入口路由回归测试仍排除 reverse**
+
+- 位置：`test/workflow.test.mjs:19–20`（`ENTRY_ROUTED_WORKFLOWS = WORKFLOWS.filter(w => w !== "reverse")`，注释称 run 路由“由文档同步任务补齐”）、`:714`（测试名 “all nine scripts” 只断言 9 个含 `<workflow>.js`）。
+- 事实：t43 已在 `skills/run/SKILL.md` 增加 reverse 行（第 45 行）与两条 args 示例，但该测试仍不校验 reverse 路由；属测试覆盖缺口（不影响当前功能）。
+- requiredFix：将 reverse 纳入 `ENTRY_ROUTED_WORKFLOWS`（或单独断言 `run` SKILL 含 `` `reverse.js` `` 与 reverse/REA 关键字），并更新测试名/注释。
+
+**观察（info，不影响判定）**
+
+- **O-1（info）blocked 的 agents 字段是契约口径而非实测调用数**：`blockedResult`（`workflow/reverse.js:1636`）固定写 `{scope:counts.scope||0, probe:counts.probe||0, analysis:0, runtime:0}`，调用处 `:1716/:1717/:1721/:1724/:1741/:1742` 统一传 `{scope:1,probe:1}`；而 probe 级 blocked 实际只调用 1 个 agent（`reverse-scope`），inventory 级 blocked 实际调用 2 个（含 1 个 analysis stage），结果仍报 `analysis:0`。这与 addendum §3.5 `:360` 的返回形状一致（“scope 1 + probe 1；analysis 0”），故不是实现偏离契约，但机器可读计数不反映实际调用；建议 v0.3 明确“契约口径”或按阶段真实计数。
+- **O-2（info）E2E waiver**：v0.2.0 未重跑真实 E2E（`.work` 已在 t33 按用户要求删除且不得重建）；历史 `smoke-report §11`/`verification-report §15.6` 证据仍在且未改写；本轮按 waiver 只读核对，未伪造。
+- **O-3（info）`cordis.patch.yml:3` 注释仍写“注册 15 个 bundled skill”**：实际 provider 16；assembly V-5 已受理（注释级、无运行时影响）。
+- **O-4（info）插件目录为 git 仓库且 v0.2.0 未提交/打 tag**：`dsh-redblue/.git` 基线 commit `277ec2e`（v0.1.0），`git status` 21 个未提交修改（v0.2.0 工作树）；`.git` 不在 `package.json files`（npm 默认忽略），不影响打包；若以 git 交付/审计，建议 t45 等价任务提交并 tag `v0.2.0`。
+- **O-5（info）retain 语义在文档间存在口径差异**：`references/shared/evidence-standards.md:118–119` 称 `findings-only` 只留 finding/证据摘要/报告/manifest、原始输出“需要时”写 `workDir/evidence/`；addendum §6.5 `:677` 把 reverse 的 `findings-only` 定义为写完整 REA 证据包（敏感、不裁剪）。实现按 addendum（`workflow/reverse.js` retain!=none 即导出）；建议下一版在 evidence-standards 增加“reverse lane 例外：findings-only 仍导出证据包（敏感）”注记，避免数据处置口径歧义。
+
+### 18.9 结论与判定
+
+- **PASS（0 blocker / 0 high）**：v0.2.0 的探测/降级真实（blocked/0 分析 agent/0 产物、provider 缺口与 live REA 一致）、runtime 四条件不可绕过、v0.1 的 9 个 workflow + 39 个 `G-*` 逐字节零回归、10 个胶囊共享段一致、run/lib 344 码点一致、内容可执行、16/10/28/44 与 REA MIT/pin/未打包/零依赖合规、测试 116/115/1 与 lint 90/0/2 全绿、E2E 按已批准 waiver 处理且未伪造证据。
+- 残余 F1（medium，随包 install/delivery/preview 仍 v0.1.0）与 F2–F5（low，SKILL 默认值/architecture 拆解/assembly V-6 状态/测试覆盖）均为文档/资产/测试一致性，不改变门禁、落盘与运行时行为；按任务规则（无 blocker/high）判 pass，并建议发布前由 t45 等价任务关闭 F1（其余可并入同一次文档收口）。
+- 本轮未修改任何被评审文件；仅追加本 §18。
+
+### 18.10 本轮证据限制与改动声明
+
+- 未重跑真实 workflow E2E、未运行任何白名单工具配方、未发起网络请求；reverse 行为以自建 `node:vm` 宿主 + stub agent 验证（胶囊本身无 fs/网络/Node API），与 t36/t37 的测试互补而非复用。
+- 未逐行复制 255 个 REA 工具清单；以 `binary_session` 的 catalog/组状态与参考 §3/§4 对照，未独立重算 133/63/59 的三组数字（summary 视图未给出逐组明细；文档本身要求 probe 决定、不得写死）。
+- 未核对 `docs/install.md`/`delivery-summary.md` 中“本机实测”的每一条安装输出（属 t33 历史记录）；仅核对其版本/计数/REA 覆盖与当前字节是否一致。
+- 改动面：编辑前后对插件全部文件（排除 `.git`）做 SHA256 比对，**唯一变化为本文件**；临时探针脚本在系统临时目录（`%TEMP%/dsh-review2`），未进入插件目录；未改 `.work`、`skills`、`references`、`workflow`、`lib`、`tools`、`test`、`package.json` 或其它 docs。

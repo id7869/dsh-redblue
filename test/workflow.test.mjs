@@ -15,7 +15,9 @@ const root = resolve(here, "..");
 const workflowDir = resolve(root, "workflow");
 const skillDir = "C:/dsh-workspace/branch1/dsh-redblue/skills";
 
-const WORKFLOWS = ["assess", "recon", "exploit", "post", "hunt", "ir", "purple", "triage", "harden"];
+const WORKFLOWS = ["assess", "recon", "exploit", "post", "hunt", "ir", "purple", "triage", "harden", "reverse"];
+// skills/run/SKILL.md 的路由表属于 t36 的 outOfScope；v0.2 的 reverse 路由由文档同步任务补齐。
+const ENTRY_ROUTED_WORKFLOWS = WORKFLOWS.filter((workflow) => workflow !== "reverse");
 
 function loadWorkflow(name) {
   const source = readFileSync(resolve(workflowDir, name + ".js"), "utf8");
@@ -89,6 +91,10 @@ function argsFor(workflow, overrides = {}) {
     scope.dataSources = [dataSource("baseline", "C:/work/baseline.json", { version: "1.0", lastVerified: isoDate(NOW) })];
     return Object.assign(base, overrides);
   }
+  if (workflow === "reverse") {
+    scope.targets = [{ kind: "source", value: REVERSE_TARGET }];
+    return Object.assign(base, { runtime: false }, overrides);
+  }
   return Object.assign(base, overrides);
 }
 
@@ -113,6 +119,10 @@ function tamperedReply(prompt, path) {
   const tampered = content.length > 0 ? (content[0] === "{" ? "[" : "x") + content.slice(1) : "x";
   return { ok: true, path: path, sha256: sha256Of(tampered), bytes: Buffer.byteLength(tampered, "utf8") };
 }
+
+const REVERSE_TARGET = "C:/samples/app.exe";
+const REVERSE_SHA = "a".repeat(64);
+const REVERSE_BUNDLE = JSON.stringify({ schemaVersion: "rea-evidence/v1", records: [] });
 
 const DEFAULT_REPLIES = [
   [/^scope$/, () => ({ ok: true, notes: "scope ok" })],
@@ -140,6 +150,57 @@ const DEFAULT_REPLIES = [
   [/^check:/, () => ({ controlId: "C1", status: "pass", observed: "o", evidenceRefs: [] })],
   [/^remediation$/, () => ({ items: [] })],
   [/^verify$/, () => ({ verified: [] })],
+  [/^reverse-scope$/, () => ({
+    reaAvailable: true,
+    server: { package: "rea-agents", version: "6.9.0", skillVersion: 62, protocol: "2026-07-28", catalog: { mcpTools: 3, cliCommands: 2, prompts: 1 } },
+    providers: [{ id: "ghidra", kind: "static-engine", available: true, version: "12.1.4", reason: null, remediation: null }, { id: "jadx", kind: "parser", available: false, version: null, reason: "provider_missing", remediation: "set REA_JADX_MCP_JAR" }],
+    runtimeProviders: [{ id: "frida", kind: "runtime", available: "unknown", reason: null, remediation: "probe list_frida_devices" }],
+    toolAvailability: { immediate: 1, targetRequired: 1, hardUnavailable: 1, byReason: { provider_missing: 1 } },
+    targetKind: "pe",
+    target: { path: REVERSE_TARGET, sha256: REVERSE_SHA, bytes: 118256, format: "pe", architecture: "x86_64" },
+    suggestedTools: ["open_binary", "inspect_pe_imports"],
+    degraded: [],
+    limitations: [],
+  })],
+  [/^reverse-inventory$/, () => ({
+    ok: true,
+    target: { path: REVERSE_TARGET, sha256: REVERSE_SHA, bytes: 118256, format: "pe" },
+    members: [],
+    evidenceIds: ["ev_" + "b".repeat(64)],
+    sideEffects: [{ kind: "engine-start", provider: "ghidra", targetExecuted: false, closed: true }],
+    unknowns: [],
+    degraded: [],
+    limitations: [],
+  })],
+  [/^reverse-static$/, () => ({
+    candidates: [{ title: "unsigned binary", category: "hardening-gap", target: { kind: "source", value: REVERSE_TARGET }, claim: "no signature", evidence: "e", confidence: "derived", authority: "shipped-artifact", evidenceId: "ev_" + "c".repeat(64), operation: "inspect_pe_certificates", disposition: "deferred", limitations: ["static only"] }],
+    evidence: [{ evidenceId: "ev_" + "c".repeat(64), operation: "inspect_pe_certificates" }],
+    techniques: [],
+    degraded: [{ capability: "inspect_binary_hardening", reason: "client_schema_error", remediation: "use inspect_pe_load_config", effect: "hardening_not_assessed" }],
+    limitations: ["static only"],
+  })],
+  [/^reverse-runtime$/, () => ({
+    executed: false,
+    providers: [],
+    actions: [],
+    cleanup: [],
+    candidates: [],
+    evidence: [],
+    degraded: [{ capability: "frida", reason: "provider_unavailable", effect: "runtime_not_executed" }],
+    limitations: [],
+  })],
+  [/^reverse-report-export$/, () => ({
+    ok: true,
+    path: "evidence/rea-evidence.json",
+    bytes: Buffer.byteLength(REVERSE_BUNDLE, "utf8"),
+    sha256: sha256Of(REVERSE_BUNDLE),
+    records: 1,
+    evidenceIds: ["ev_" + "b".repeat(64)],
+    content: REVERSE_BUNDLE,
+    fallback: false,
+    cleanup: [],
+    limitations: [],
+  })],
   [/^report-write:/, (label, prompt) => reportWriteReply(prompt)],
   [/^seal$/, () => ({ ok: true, checks: [{ name: "hash-match", pass: true }], mismatches: [] })],
   [/^seal-write$/, () => ({ ok: true, path: "scan-manifest.json" })],
@@ -203,7 +264,7 @@ function promptOf(harness, prefix) {
 // Static contract checks
 // ---------------------------------------------------------------------------
 
-test("nine workflow scripts exist, pass syntax, and expose no fs/network/Node API", () => {
+test("ten workflow scripts exist, pass syntax, and expose no fs/network/Node API", () => {
   for (const workflow of WORKFLOWS) {
     const source = readFileSync(resolve(workflowDir, workflow + ".js"), "utf8");
     assert.ok(source.includes("return (async () => {"), `${workflow}: missing async wrapper`);
@@ -336,6 +397,7 @@ test("mode below minimum or invalid is rejected without agent calls", async () =
     purple: "bogus",
     triage: "bogus",
     harden: "bogus",
+    reverse: "bogus",
   };
   for (const workflow of WORKFLOWS) {
     const args = argsFor(workflow);
@@ -349,7 +411,7 @@ test("mode below minimum or invalid is rejected without agent calls", async () =
     if (workflow === "harden") args.scope.dataSources = [dataSource("baseline", "C:/work/baseline.json", { version: "1.0", lastVerified: isoDate(NOW) })];
     const { result, harness } = await runWorkflow(workflow, args);
     assert.equal(result.status, "rejected", workflow);
-    const expected = workflow === "recon" ? "G-MODE-03" : (workflow === "assess" || workflow === "hunt" || workflow === "ir" || workflow === "purple" || workflow === "triage" || workflow === "harden" ? "G-MODE-01" : "G-MODE-02");
+    const expected = workflow === "recon" ? "G-MODE-03" : (workflow === "assess" || workflow === "hunt" || workflow === "ir" || workflow === "purple" || workflow === "triage" || workflow === "harden" || workflow === "reverse" ? "G-MODE-01" : "G-MODE-02");
     assert.ok(result.rejectedBy.includes(expected), workflow + ": expected " + expected + " got " + JSON.stringify(result.rejectedBy));
     assert.equal(agentCalls(harness).length, 0, workflow);
   }
@@ -415,7 +477,7 @@ test("invalid maxConcurrency and unknown args keys are rejected", async () => {
 // Dry-run success paths
 // ---------------------------------------------------------------------------
 
-test("all nine workflows complete a dry-run path with sealed deterministic products", async () => {
+test("all ten workflows complete a dry-run path with sealed deterministic products", async () => {
   for (const workflow of WORKFLOWS) {
     const { result, harness } = await runWorkflow(workflow, argsFor(workflow));
     assert.equal(result.ok, true, workflow + ": " + JSON.stringify(result));
@@ -426,6 +488,13 @@ test("all nine workflows complete a dry-run path with sealed deterministic produ
     const paths = result.artifacts.map((artifact) => artifact.path);
     for (const required of ["findings.json", "coverage.json", "report.md", "exports/results.sarif"]) {
       assert.ok(paths.includes(required), workflow + ": missing product " + required + " in " + paths.join(","));
+    }
+    if (workflow === "reverse") {
+      for (const required of ["scope.json", "reverse.json", "evidence/rea-evidence.json"]) {
+        assert.ok(paths.includes(required), "reverse: missing product " + required + " in " + paths.join(","));
+      }
+      assert.equal(result.written.length, 8, "reverse: expected 8 written products (7 artifacts + manifest)");
+      assert.equal(result.runtime, false);
     }
     assert.ok(result.written.includes("scan-manifest.json"), workflow + ": manifest must be written");
     for (const artifact of result.artifacts) {
@@ -509,9 +578,11 @@ test("stage prompts carry skill path, untrusted boundary, workDir limit and JSON
       assert.ok(prompt.includes("写入仅限 workDir"), workflow);
       assert.match(prompt, /只返回单个 JSON 对象/, workflow + ": prompt lacks JSON-only convention");
     }
-    const first = calls[0].prompt;
-    assert.ok(first.includes("G-OUT-01"), workflow + ": first prompt lacks G-OUT-01 check");
-    assert.ok(first.includes("scope.json"), workflow + ": first prompt lacks scope.json write");
+    const first = workflow === "reverse"
+      ? calls.find((entry) => entry.label === "reverse-inventory").prompt
+      : calls[0].prompt;
+    assert.ok(first.includes("G-OUT-01"), workflow + ": first write prompt lacks G-OUT-01 check");
+    assert.ok(first.includes("scope.json"), workflow + ": first write prompt lacks scope.json write");
   }
 });
 
@@ -560,7 +631,7 @@ test("G-OUT-01 from the first phase rejects without report writes", async () => 
   for (const workflow of WORKFLOWS) {
     const firstLabel = {
       assess: "scope", recon: "scope", exploit: "scope", post: "scope", hunt: "scope",
-      ir: "intake", purple: "redActions", triage: "finding", harden: "baseline",
+      ir: "intake", purple: "redActions", triage: "finding", harden: "baseline", reverse: "reverse-inventory",
     }[workflow];
     const custom = (label) => label === firstLabel ? { gate: "G-OUT-01" } : undefined;
     const { result, harness } = await runWorkflow(workflow, argsFor(workflow), custom);
@@ -642,7 +713,8 @@ test("generated findings/coverage/manifest match the draft-07 schemas", async ()
 
 test("entry skill routes intents to all nine scripts and documents gates", () => {
   const skill = readFileSync(resolve(root, "skills", "run", "SKILL.md"), "utf8");
-  for (const workflow of WORKFLOWS) assert.ok(skill.includes("`" + workflow + ".js`"), "run skill missing " + workflow);
+  for (const workflow of ENTRY_ROUTED_WORKFLOWS) assert.ok(skill.includes("`" + workflow + ".js`"), "run skill missing " + workflow);
+  assert.ok(readFileSync(resolve(workflowDir, "reverse.js"), "utf8").length > 0, "reverse workflow must exist");
   for (const needle of ["意图 → 脚本路由表", "工具面自检", "默认 `dryRun=true`", "二次确认", "退出码", "产物位置", "workDir"]) {
     assert.ok(skill.includes(needle), "run skill missing " + needle);
   }
@@ -813,7 +885,7 @@ test("workflow scope projection passes gate/guard while hard gates remain strict
   }
 });
 
-test("nine capsules share the same finalize core and pure scope projection", () => {
+test("ten capsules share the same finalize core and pure scope projection", () => {
   let coreHash = null;
   for (const workflow of WORKFLOWS) {
     const source = readFileSync(resolve(workflowDir, workflow + ".js"), "utf8");
@@ -862,6 +934,237 @@ test("every workflow stage skill directory exists under skills/", () => {
     assert.ok(skillDirs.has(dir), "workflow references missing skills/" + dir + "/SKILL.md (used by " + workflows.join(", ") + ")");
     assert.ok(readFileSync(resolve(skillsRoot, dir, "SKILL.md"), "utf8").trim().length > 0, "empty " + dir + "/SKILL.md");
   }
+});
+
+// ---------------------------------------------------------------------------
+// v0.2.0 regression: reverse lane (probe / degrade / runtime gates / products)
+// ---------------------------------------------------------------------------
+
+function reverseScope(overrides = {}) {
+  return Object.assign(baseScope(), {
+    targets: [{ kind: "source", value: REVERSE_TARGET }],
+    mode: "passive",
+  }, overrides);
+}
+
+function reverseArgs(overrides = {}) {
+  return argsFor("reverse", Object.assign({ scope: reverseScope() }, overrides));
+}
+
+test("reverse static passive run produces the eight v0.2 products and skips runtime", async () => {
+  const { result, harness } = await runWorkflow("reverse", reverseArgs());
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.status, "clean");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.sealed, true);
+  assert.equal(result.runtime, false);
+  assert.equal(result.reverse.targetKind, "pe");
+  assert.equal(result.reverse.runtimeExecuted, false);
+  assert.deepEqual(Array.from(result.written).sort(), [
+    "coverage.json", "evidence/rea-evidence.json", "exports/results.sarif", "findings.json",
+    "report.md", "reverse.json", "scan-manifest.json", "scope.json",
+  ]);
+
+  const coverage = JSON.parse(fileContentFrom(harness, "coverage.json"));
+  const runtimePhase = coverage.phases.find((phase) => phase.name === "runtime");
+  assert.ok(runtimePhase, "coverage must include the runtime phase");
+  assert.equal(runtimePhase.status, "skipped");
+  assert.equal(runtimePhase.agents, 0);
+  assert.equal(coverage.workflow, "reverse");
+
+  const reverseDoc = JSON.parse(fileContentFrom(harness, "reverse.json"));
+  for (const key of ["schemaVersion", "runId", "workflow", "target", "probe", "route", "sideEffects", "stages", "evidence", "runtime", "degraded", "unknowns", "limitations", "counts"]) {
+    assert.ok(key in reverseDoc, "reverse.json missing " + key);
+  }
+  assert.equal(reverseDoc.workflow, "reverse");
+  assert.equal(reverseDoc.target.kind, "source");
+  assert.equal(reverseDoc.target.value, REVERSE_TARGET);
+  assert.equal(reverseDoc.evidence.retained, true);
+  assert.equal(reverseDoc.evidence.deterministic, false);
+  assert.match(reverseDoc.evidence.sha256, /^[0-9a-f]{64}$/);
+  assert.equal(reverseDoc.runtime.requested, false);
+  assert.equal(reverseDoc.stages.runtime.status, "skipped");
+  assert.equal(reverseDoc.evidence.path, "evidence/rea-evidence.json");
+
+  const findings = JSON.parse(fileContentFrom(harness, "findings.json"));
+  assert.equal(findings.findings.length, 1);
+  assert.equal(findings.findings[0].target.kind, "source");
+  assert.equal(findings.findings[0].evidenceRefs.length, 1);
+  assert.match(findings.findings[0].evidenceRefs[0].sha256, /^[0-9a-f]{64}$/);
+  assert.match(findings.findings[0].evidenceRefs[0].path, /rea-evidence\.json$/);
+  assert.match(findings.findings[0].evidenceRefs[0].locator, /^rea:ev_[0-9a-f]{64}#/);
+  assert.ok(!agentCalls(harness).some((call) => call.label === "reverse-runtime"), "runtime agent must not run when runtime=false");
+});
+
+test("reverse runtime=true requires mode>=active and dryRun=false (G-RT-01)", async () => {
+  const passive = await runWorkflow("reverse", reverseArgs({ scope: reverseScope({ mode: "passive" }), runtime: true }));
+  assert.equal(passive.result.status, "rejected");
+  assert.equal(passive.result.exitCode, 1);
+  assert.ok(passive.result.rejectedBy.includes("G-RT-01"), JSON.stringify(passive.result.rejectedBy));
+  assert.equal(agentCalls(passive.harness).length, 0);
+
+  const dry = await runWorkflow("reverse", reverseArgs({ scope: reverseScope({ mode: "active" }), runtime: true, dryRun: true, confirm: REVERSE_TARGET }));
+  assert.equal(dry.result.status, "rejected");
+  assert.ok(dry.result.rejectedBy.includes("G-RT-01"), JSON.stringify(dry.result.rejectedBy));
+  assert.equal(agentCalls(dry.harness).length, 0, "runtime gates are evaluated before any agent");
+});
+
+test("reverse runtime=true requires an exact source confirm (G-RT-02)", async () => {
+  const base = { scope: reverseScope({ mode: "active" }), runtime: true, dryRun: false };
+  const missing = await runWorkflow("reverse", reverseArgs(base));
+  assert.equal(missing.result.status, "rejected");
+  assert.ok(missing.result.rejectedBy.includes("G-RT-02"), JSON.stringify(missing.result.rejectedBy));
+  assert.equal(agentCalls(missing.harness).length, 0);
+
+  for (const confirm of ["c:/samples/app.exe", "C:\\samples\\..\\app.exe", "C:/samples/other.exe", "app.exe"]) {
+    const bad = await runWorkflow("reverse", reverseArgs(Object.assign({}, base, { confirm })));
+    assert.equal(bad.result.status, "rejected", confirm);
+    assert.ok(bad.result.rejectedBy.includes("G-RT-02"), confirm + ": " + JSON.stringify(bad.result.rejectedBy));
+    assert.equal(agentCalls(bad.harness).length, 0, confirm + ": no agent");
+  }
+
+  const confirmWithoutRuntime = await runWorkflow("reverse", reverseArgs({ scope: reverseScope(), confirm: REVERSE_TARGET }));
+  assert.equal(confirmWithoutRuntime.result.status, "rejected");
+  assert.ok(confirmWithoutRuntime.result.rejectedBy.includes("G-RT-02"), JSON.stringify(confirmWithoutRuntime.result.rejectedBy));
+
+  const exact = await runWorkflow("reverse", reverseArgs(Object.assign({}, base, { confirm: "C:\\samples\\app.exe" })));
+  assert.equal(exact.result.ok, true, JSON.stringify(exact.result));
+  assert.equal(exact.result.runtime, true);
+  assert.equal(exact.result.reverse.runtimeExecuted, false);
+  const coverage = JSON.parse(fileContentFrom(exact.harness, "coverage.json"));
+  const runtimePhase = coverage.phases.find((phase) => phase.name === "runtime");
+  assert.equal(runtimePhase.status, "completed");
+  assert.equal(runtimePhase.agents, 1);
+  assert.ok(agentCalls(exact.harness).some((call) => call.label === "reverse-runtime"));
+});
+
+test("reverse requires exactly one kind=source target (G-TGT-05)", async () => {
+  const cases = [
+    ["multiple sources", [{ kind: "source", value: REVERSE_TARGET }, { kind: "source", value: "C:/samples/b.exe" }]],
+    ["domain target", [{ kind: "domain", value: "app.example.com" }]],
+    ["empty targets", []],
+  ];
+  for (const [label, targets] of cases) {
+    const { result, harness } = await runWorkflow("reverse", reverseArgs({ scope: reverseScope({ targets }) }));
+    assert.equal(result.status, "rejected", label);
+    assert.equal(result.exitCode, 1, label);
+    assert.ok(result.rejectedBy.includes("G-TGT-05"), label + ": " + JSON.stringify(result.rejectedBy));
+    assert.equal(agentCalls(harness).length, 0, label + ": no agent");
+  }
+});
+
+test("reverse probe unavailable returns blocked G-REA-01 with remediation and no analysis", async () => {
+  const custom = (label) => label === "reverse-scope"
+    ? { reaAvailable: false, reason: "REA MCP server unavailable" }
+    : undefined;
+  const { result, harness } = await runWorkflow("reverse", reverseArgs(), custom);
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "blocked");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.code, 1);
+  assert.deepEqual(Array.from(result.blockedBy), ["G-REA-01"]);
+  assert.equal(result.artifacts.length, 0);
+  assert.equal(result.sealed, false);
+  assert.equal(result.agents.analysis, 0);
+  assert.equal(result.agents.runtime, 0);
+  assert.ok(Array.isArray(result.remediation.install) && result.remediation.install.length > 0, "blocked must carry install guidance");
+  assert.equal(agentCalls(harness).length, 1, "only the probe agent runs before blocked");
+  assert.equal(agentCalls(harness)[0].label, "reverse-scope");
+  assert.ok(!agentCalls(harness).some((call) => call.label.startsWith("report-write:")), "blocked must not write products");
+  assert.equal(result.counts.candidates, 0);
+  assert.equal(result.counts.reportable, 0);
+});
+
+test("reverse unreadable target or hash mismatch returns blocked G-REA-02", async () => {
+  const badTarget = (label) => label === "reverse-scope"
+    ? Object.assign({}, DEFAULT_REPLIES.find(([pattern]) => pattern.test("reverse-scope"))[1]("reverse-scope"), { target: { path: REVERSE_TARGET, sha256: "", bytes: 0, format: "pe" } })
+    : undefined;
+  const scopeBlocked = await runWorkflow("reverse", reverseArgs(), badTarget);
+  assert.equal(scopeBlocked.result.status, "blocked");
+  assert.deepEqual(Array.from(scopeBlocked.result.blockedBy), ["G-REA-02"]);
+  assert.equal(scopeBlocked.result.artifacts.length, 0);
+  assert.equal(agentCalls(scopeBlocked.harness).length, 1);
+
+  const inventoryMismatch = (label) => label === "reverse-inventory"
+    ? { ok: true, target: { path: REVERSE_TARGET, sha256: "b".repeat(64), bytes: 118256, format: "pe" }, members: [], evidenceIds: [], sideEffects: [], unknowns: [], degraded: [], limitations: [] }
+    : undefined;
+  const hashBlocked = await runWorkflow("reverse", reverseArgs(), inventoryMismatch);
+  assert.equal(hashBlocked.result.status, "blocked");
+  assert.deepEqual(Array.from(hashBlocked.result.blockedBy), ["G-REA-02"]);
+  assert.equal(hashBlocked.result.artifacts.length, 0);
+  assert.deepEqual(agentCalls(hashBlocked.harness).map((call) => call.label), ["reverse-scope", "reverse-inventory"]);
+});
+
+test("reverse missing providers degrade and still produce a clean report", async () => {
+  const custom = (label) => label === "reverse-static"
+    ? {
+        candidates: [],
+        evidence: [],
+        techniques: [],
+        degraded: [
+          { capability: "jadx", reason: "provider_missing", remediation: "set REA_JADX_MCP_JAR", effect: "apk_decompile_unavailable" },
+          { capability: "wabt", reason: "provider_missing", remediation: "set REA_WABT_BIN_DIRECTORY", effect: "wasm_text_unavailable" },
+        ],
+        limitations: ["APK/WASM providers missing"],
+      }
+    : undefined;
+  const { result, harness } = await runWorkflow("reverse", reverseArgs(), custom);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.status, "clean");
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.reverse.degraded >= 1, "degraded count must be reported");
+  const reverseDoc = JSON.parse(fileContentFrom(harness, "reverse.json"));
+  assert.ok(reverseDoc.degraded.length >= 2, JSON.stringify(reverseDoc.degraded));
+  assert.ok(reverseDoc.limitations.some((item) => item.includes("degraded:")), "limitations must record degraded capabilities");
+  assert.ok(!agentCalls(harness).some((call) => call.label === "reverse-runtime"));
+});
+
+test("reverse runtime provider unavailable degrades instead of blocking", async () => {
+  const custom = (label) => label === "reverse-runtime"
+    ? { executed: false, providers: [{ id: "frida", available: false, reason: "provider_unavailable" }], actions: [], cleanup: [], candidates: [], evidence: [], degraded: [{ capability: "frida", reason: "provider_unavailable", effect: "runtime_not_executed" }], limitations: ["frida unavailable"] }
+    : undefined;
+  const { result, harness } = await runWorkflow("reverse", reverseArgs({
+    scope: reverseScope({ mode: "active" }),
+    runtime: true,
+    dryRun: false,
+    confirm: REVERSE_TARGET,
+  }), custom);
+  assert.equal(result.ok, true, JSON.stringify(result));
+  assert.equal(result.status, "clean");
+  assert.equal(result.runtime, true);
+  assert.equal(result.reverse.runtimeExecuted, false);
+  const reverseDoc = JSON.parse(fileContentFrom(harness, "reverse.json"));
+  assert.equal(reverseDoc.runtime.requested, true);
+  assert.equal(reverseDoc.runtime.executed, false);
+  assert.ok(reverseDoc.limitations.some((item) => item.includes("runtime=true 但未执行")), JSON.stringify(reverseDoc.limitations));
+});
+
+test("reverse evidence export hash mismatch fails at report without sealing", async () => {
+  const custom = (label) => label === "reverse-report-export"
+    ? { ok: true, path: "evidence/rea-evidence.json", bytes: Buffer.byteLength(REVERSE_BUNDLE, "utf8"), sha256: "f".repeat(64), records: 1, evidenceIds: [], content: REVERSE_BUNDLE, fallback: false, cleanup: [], limitations: [] }
+    : undefined;
+  const { result, harness } = await runWorkflow("reverse", reverseArgs(), custom);
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "error");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.failedStage, "report");
+  assert.match(result.error, /证据包/);
+  assert.ok(!agentCalls(harness).some((call) => call.label === "seal"), "report failure must not seal a manifest");
+});
+
+test("reverse evidence seal mismatch writes a failed manifest and errors", async () => {
+  const custom = (label) => label === "seal"
+    ? { ok: false, checks: [{ name: "hash-match", pass: false }], mismatches: [{ path: "evidence/rea-evidence.json", actualSha256: "0".repeat(64) }] }
+    : undefined;
+  const { result, harness } = await runWorkflow("reverse", reverseArgs(), custom);
+  assert.equal(result.ok, false);
+  assert.equal(result.status, "error");
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.failedStage, "seal");
+  const manifest = manifestFromSealWrite(harness);
+  assert.equal(manifest.status, "failed");
+  assert.equal(manifest.exitCode, 1);
+  assert.ok(manifest.mismatches.some((item) => item.path === "evidence/rea-evidence.json"), JSON.stringify(manifest.mismatches));
 });
 
 // ---------------------------------------------------------------------------
@@ -945,7 +1248,7 @@ function functionSegment(source, startText, afterText) {
 
 const REVIEW_FIELDS = ["confidenceRationale", "counterevidence", "severityChangeConditions", "fixVerification", "basis"];
 
-test("scope limits implementation is identical in gate and all nine workflows", () => {
+test("scope limits implementation is identical in gate and all ten workflows", () => {
   const gateSource = readFileSync(resolve(root, "tools/lib/gate.mjs"), "utf8");
   const gateLimits = functionSegment(gateSource, "function validateScopeLimits(rawScope, reject) {", "export function checkScope(raw, options = {}) {");
   assert.match(gateSource, /validateScopeLimits\(raw, reject\);/, "checkScope must call validateScopeLimits (not dead code)");
@@ -1003,7 +1306,7 @@ test("scope check and guard reject over-limit scope with G-CONF-01 before spawn"
   }
 });
 
-test("normalizeFinding copies review fields identically in all nine workflows", () => {
+test("normalizeFinding copies review fields identically in all ten workflows", () => {
   let findingHash = null;
   for (const workflow of WORKFLOWS) {
     const source = readFileSync(resolve(workflowDir, workflow + ".js"), "utf8");
@@ -1160,10 +1463,12 @@ test("value-extraction stats match the ACS/red ledgers and actual skill files", 
   }
   assert.doesNotMatch(doc, /0 个有 `--dry-run`|227 个使用 `requests`|35 个含 `verify=False`/);
   const skillDirs = readdirSync(resolve(root, "skills"), { withFileTypes: true }).filter((entry) => entry.isDirectory());
-  assert.equal(skillDirs.length, 15);
+  assert.equal(skillDirs.length, 16, "v0.2.0 ships 16 bundled skills");
   const lines = skillDirs.map((entry) => readFileSync(resolve(root, "skills", entry.name, "SKILL.md"), "utf8").replace(/\r?\n$/, "").split(/\r?\n/).length).sort((a, b) => a - b);
   assert.equal(lines[0], 107);
-  assert.equal(lines[lines.length - 1], 175);
+  assert.equal(lines[lines.length - 1], 198);
+  // docs/value-extraction.md、docs/assembly-report.md 等文档计数同步属于 v0.2 文档任务（t36 outOfScope）；
+  // 这里只锁定 v0.1 历史台账仍在（其 15 技能口径不改写）。
   assert.ok(doc.includes("15 个，107–175 行/个"));
   const redLedger = readFileSync(resolve(root, "references/red/extraction-ledger.md"), "utf8");
   assert.match(redLedger, /\| ACS \|.*\| 818 \|/);

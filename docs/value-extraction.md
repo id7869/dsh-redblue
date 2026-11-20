@@ -1,7 +1,7 @@
 # 三库价值提炼账（value-extraction）
 
-- 目的：记录 Strix / Anthropic-Cybersecurity-Skills（ACS）/ Claude-Red 三个上游如何被**改写、压缩、净化**为 dsh-redblue 的 15 个技能、9 个 workflow、参考库与工具运行时；给出 keep / merge / drop 数量与代表样例
-- 口径：Claude-Red 79 个 `SKILL.md`；ACS 818 个技能 / 809 个 `scripts/agent.py`；Strix 9 个官方 `SKILL.md` + 78 篇内部知识（另 9 篇治理/基准文档不吸收）
+- 目的：记录 Strix / Anthropic-Cybersecurity-Skills（ACS）/ Claude-Red 三个上游如何被**改写、压缩、净化**为 dsh-redblue 的 16 个技能、10 个 workflow、参考库与工具运行时；给出 keep / merge / drop 数量与代表样例；REA 作为 v0.2.0 可选外部 MCP lane 单列（不进入三上游总账）
+- 口径：Claude-Red 79 个 `SKILL.md`；ACS 818 个技能 / 809 个 `scripts/agent.py`；Strix 9 个官方 `SKILL.md` + 78 篇内部知识（另 9 篇治理/基准文档不吸收）；REA `rea-agents@6.9.0`（MIT）255 个 MCP 工具 / 196 个 CLI 命令，只提炼路由与证据纪律，不打包运行时
 - 原则：**能力重写，不搬运脚本**；不打包任何上游 Python/运行时/课程灌水；示例只用保留域与文档网段
 
 ## 1. 总账
@@ -12,11 +12,12 @@
 | ACS `54a7988…`（Apache-2.0） | 818 个技能 / 809 个 agent.py | 60 | 672 | 86 | blue 4 技能 + purple + 蓝队参考/模板 |
 | Strix `8db295a…`（Apache-2.0） | 9 个官方技能 | 2 | 7 | 0 | run 入口 + validate/exploit 纪律 + workflow 门禁 |
 | Strix 内部知识 | 78 篇（治理/基准 9 篇不吸收） | 47 | 29 | 2 | `red/strix-techniques.md` + 台账 |
-| **合计** | **984 条** | **123** | **757** | **104** | 15 技能 + 27 参考 + 9 workflow + 工具层 |
+| REA `rea-agents@6.9.0`（MIT，可选外部 MCP） | 路由/证据/生命周期纪律（255 工具 / 196 CLI / 6 prompts） | 1 | 0 | 0 | `skills/red-reverse` + `references/red/reverse-artifacts.md` + `workflow/reverse.js` + 5 门禁 |
+| **合计** | **984 条（三上游）** | **123** | **757** | **104** | 16 技能 + 28 参考 + 10 workflow + 工具层 |
 
-> Strix 的 78 + 9 = 87 是内部知识库存口径；9 篇治理/基准不进入价值账（见 `references/red/extraction-ledger.md` §1 与 §8）。
+> Strix 的 78 + 9 = 87 是内部知识库存口径；9 篇治理/基准不进入价值账（见 `references/red/extraction-ledger.md` §1 与 §8）。REA 行不计入 984：它不是方法论上游，而是可选运行时能力；其价值在“路由/证据纪律”，不搬运代码、不打包运行时、不硬依赖（缺失时 blocked/降级）。
 
-## 2. Claude-Red → 红队方法论（79 → 15 中的 8 个红/横切技能）
+## 2. Claude-Red → 红队方法论（79 → 16 中的 8 个红/横切技能；reverse 来自 REA，不计入）
 
 ### 2.1 处置分布
 
@@ -98,29 +99,50 @@
 | 源码感知/供应链 | merge | `strix-techniques.md` §5–§6 |
 | 78 篇逐篇台账 | — | `references/red/extraction-ledger.md` §8（I1–I78） |
 
-## 5. 能力形态转化（不是文档搬运）
+## 5. REA → 逆向 lane（v0.2.0，可选外部 MCP）
+
+REA（Reverse Engineering Agent）不是方法论上游，而是宿主可选的 MCP 运行时。v0.2.0 只提炼其**目标路由、证据分层与生命周期纪律**，落成 1 个技能、1 篇参考、1 个 workflow 与 5 个门禁：
+
+| 上游 | 处置 | 插件落点 | 规模 |
+|---|---|---|---|
+| `rea-agents@6.9.0`（MIT，commit `d74549e4…`，skill v62） | 改写压缩：路由矩阵（PE/ELF/托管/APK/ASAR/WASM/固件/PCAP/EVM）、证据字段（evidence_id/confidence/authority/limitations/unknowns）、生命周期（probe→覆盖→export→close） | `skills/red-reverse`（198 行 / 16,870 B） | 1 技能 |
+| 同上 | 中文改写参考：10+ 类目标工具族、最小证据、平台降级矩阵、K-1..K-12 已知缺陷 | `references/red/reverse-artifacts.md`（244 行 / 24,079 B） | 1 参考 |
+| 同上 | 原生胶囊：scope(probe)→inventory→static→[runtime]→report→seal；5 个新门禁 | `workflow/reverse.js`（1,947 行 / 103,508 B） | 1 workflow |
+
+价值边界：
+
+- **只提炼纪律**：路由、最小证据、authority/confidence 分层、探测/降级/清理；不复制 REA 源码、provider 二进制、安装脚本或样本执行细节。
+- **不打包、不硬依赖**：插件 `dependencies` 仍为空；REA 由宿主 MCP 注册。缺失时 `blocked`/`G-REA-01`（exit 1、0 分析 agent、0 产物），不自动安装；provider 缺失时降级并列出缺失项。
+- **默认静态**：`runtime=false`；Frida/进程捕获/调试等执行类需 `G-RT-01/02`（mode≥active、dryRun=false、confirm 精确匹配唯一 source target）。
+- **许可合规**：MIT 归属写入 NOTICE 与 `references/INDEX.md` 四 pin；不改变插件 Apache-2.0 整体许可。
+
+## 6. 能力形态转化（不是文档搬运）
 
 | 上游能力 | 插件形态 | 数量/规模 |
 |---|---|---|
-| 79 + 818 + 9 技能的方法论 | 15 个 bundled `SKILL.md`（rb 3 / red 7 / blue 4 / purple 1） | 15 个，107–175 行/个 |
+| 79 + 818 + 9 技能的方法论 + REA 路由 | 16 个 bundled `SKILL.md`（rb 3 / red 8 / blue 4 / purple 1） | 16 个，107–198 行/个 |
 | 命令能力（Claude-Red/Strix/ACS 工具族） | `references/red/tool-recipes.md` F1–F16；`references/blue/tool-recipes.md` B1–B12 | 16 + 12 族，每族 9 要素 |
 | 检测规则写法 | `references/blue/templates/{sigma.yml,kql.md,spl.md}` | 3 个模板 |
-| 运行时纪律（预算/退出码/封存/门禁） | `workflow/*.js` 9 个胶囊 + `policy/authorization.md` 39 项 G-* | 9 workflow，统一 0/1/2 + seal |
+| 运行时纪律（预算/退出码/封存/门禁） | `workflow/*.js` 10 个胶囊 + `policy/authorization.md` 44 项 G-* | 10 workflow，统一 0/1/2 + seal；reverse 另有 blocked |
 | 809 个 agent.py 的脚本能力 | `references/shared/script-patterns.md` S1–S7 / A1–A12 | 0 个 Python 打包；7 骨架 + 12 反模式 |
 | 脚本化命令执行 | `tools/sec.mjs`（scope/evidence/sarif/ioc/log/rule/recipes/guard） | 1 个零依赖入口 + 11 个 lib 模块 |
 | 工具族命令模板 | `tools/recipes.json`（10 条白名单配方） | 10 条，argv 数组 + 授权门禁 |
-| 证据/报告纪律 | `findings.json` / `coverage.json` / `report.md` / SARIF 2.1.0 / `scan-manifest.json` | 每次运行确定性生成 + SHA256 |
+| 证据/报告纪律 | `findings.json` / `coverage.json` / `report.md` / SARIF 2.1.0 / `scan-manifest.json`；reverse 另加 `reverse.json` + `evidence/rea-evidence.json` | 确定性生成 + SHA256；证据包 hash 封存、不承诺跨运行相同 |
 
-## 6. 与 dsh-security 的边界
+> v0.1 历史值：15 个，107–175 行/个（本账早期版本口径）；v0.2.0 新增 `red-reverse` 后为 16 个，107–198 行/个。
+
+## 7. 与 dsh-security 的边界
 
 - dsh-security 负责**自有代码/PR diff 的静态审计**；本插件负责**授权外部目标 + 运行中蓝队数据**。
-- 本账中的 Claude-Red/ACS/Strix 内容只用于方法论改写与门禁设计，不 import 其代码、不共享 node_modules、不读取其目录。
+- 本账中的 Claude-Red/ACS/Strix/REA 内容只用于方法论改写与门禁设计，不 import 其代码、不共享 node_modules、不读取其目录。
+- REA 是可选外部 MCP：插件不打包、不自动安装、不硬依赖；未注册时 reverse lane 返回 blocked 并给出安装/注册指引。
 - 上游原始仓库、课程文件、809 个 agent.py、Strix 运行时均未进入本插件（0 个 `.py`、0 个上游脚本副本）。
 
-## 7. 可复算入口
+## 8. 可复算入口
 
 - Claude-Red 台账：`references/red/extraction-ledger.md`（79 行；14/49/16）
 - ACS 台账：`references/blue/extraction-ledger.md`（818 行；60/672/86；809 脚本统计）
 - Strix 台账：`references/red/extraction-ledger.md` §8（78 行；47/29/2）
-- 参考清单与加载预算：`references/INDEX.md`（27 篇 + INDEX，每阶段 ≤2 篇）
+- 参考清单与加载预算：`references/INDEX.md`（28 篇 + INDEX，每阶段 ≤2 篇）
+- REA lane：`skills/red-reverse/SKILL.md`、`references/red/reverse-artifacts.md`、`workflow/reverse.js`、`policy/authorization.md` §4（G-TGT-05 / G-REA-01/02 / G-RT-01/02）
 - 工具运行时：`docs/tool-runtime.md`、`tools/recipes.json`、`tools/sec.mjs`

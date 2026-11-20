@@ -677,3 +677,338 @@ R2 的 5 个字段为：`confidenceRationale`、`counterevidence`、`severityCha
 - 仅追加修改 `dsh-redblue/docs/verification-report.md`（本部分）；未改 `lib/`、`skills/`、`references/`、`workflow/`、`tools/`、`test/`、`schema/`、`policy/`、`package.json`、`README.md`、其它 `docs/`、`.work/**`、`dsh-security/`。
 - 临时验证脚本仅在 `%TEMP%\t31-verify\`（stage-audit / gate-parity / hunt-functional / change-surface / debug），不属于插件；`.work/**` 仅读取，未写入。
 - 未发起网络请求、未运行白名单配方、未重跑真实 workflow；hunt 功能探针为 stub-agent 沙箱（写入仅发生在内存中的 report-write 回执）。
+
+---
+
+# 第 5 部分：v0.2.0 逆向 lane 独立验证（t37 / verification-round-1）
+
+> 独立验证者：verifier2（未参与 t34–t36 实现）；时间：2026-11-20（UTC+8，15:5x）；对象：**v0.2.0 当前工作树字节**。只读被验证文件，仅追加本文件。数字均为本轮重新执行/重新计算所得。
+
+## 17. 结论摘要
+
+| 项 | 结果 |
+|---|---|
+| 总体判定 | **FAIL（1 blocker：E2E 证据缺失，验收项 6 无法完成）**；插件结构/门禁/回归/内容本身 **0 blocker** |
+| 结构 | **16 技能 / 10 workflow / 28 参考 + INDEX / 6 schema / 10 recipes**；provider list=**16**、rank=**600**、lib 描述与 frontmatter **16/16 逐字一致**；JS/MJS **28** |
+| reverse.js 门禁 | 独立 node:vm 探针 **22/22**：16 类拒绝均 `rejected/exit1/0 agent`；3 类 blocked（G-REA-01/02）`artifacts=[]/0 分析 agent`；`runtime=false` 跳过（0 调用）、`runtime=true` provider 缺失降级不阻塞 |
+| 零回归 | lint **90 文件 / 0 blocker / 2 既有 R11**；测试 **116（115 pass + 1 skip）**；`node --check` **28/28**；**9 个 v0.1 workflow 逐字节等于 design §8.2 SHA256 基线**；limits/norm/excl/finalize **10/10 同哈希** |
+| REA 内容 | SKILL 16,870 B / 198 行；参考 24,079 B / 245 行；provenance（rea-agents@6.9.0/MIT/derived/2026-11-20）与六键齐全；PE/ELF/托管/APK/ASAR/JS/Electron/WASM/固件/PCAP/EVM/archive 路由齐全；K-1..K-12（含 hardening Windows schema 错误原文）；无凭据/真实域名/私有 IP |
+| package | **0.2.0**；`files` 22 条全部存在；新增 4 文件由 `skills/`/`references/`/`workflow/` 目录条目覆盖；addendum 不入包 |
+| E2E | **无法核验**：`.work` 已被 t33 整体删除（changedPaths 含 `.work`；5,786 文件/75 MB），`.work/smoke` 不存在（`ENOENT`） |
+| Blocking | **B1**：E2E 证据缺失 → 验收项 6 不满足（非插件代码缺陷，见 §17.9） |
+
+## 17.1 环境
+
+| 项 | 值 |
+|---|---|
+| 主机/运行时 | Windows x64；Node **v24.22.1**（`win32`/`x64`） |
+| 工作树 | `C:\dsh-workspace\branch1`；插件 `dsh-redblue` **0.2.0**；插件内文件 **125**（不含 `.git`；git 基线 121 + 4 个未跟踪新文件） |
+| Git 基线 | `277ec2e2f45a1a8c2e5284454f60244d679d7fc8`（2026-11-20 11:00:48 +0800，“v0.1.0”，121 文件）；用于本轮改动面核对 |
+| 策略/形态 | sanitization `R1-R12/v1`；workflow toolchain `dsh-redblue-native-workflow/v1`；10 个纯胶囊（无 fs/网络/Node API） |
+| 上游 pin | claude-red `6196ba7…`、ACS `54a7988…`、strix `8db295a…`、REA `d74549e4…`（四上游） |
+| 证据限制 | 未重跑真实 workflow/未发包/未运行白名单配方；未改 `.work`（已不存在）；临时脚本在 `%TEMP%\t37-verify\`（structure / reverse-probes / core-parity / content-audit），不属于插件 |
+
+## 17.2 命令表（本轮实际执行）
+
+| # | 命令 | 退出码 | 关键证据 |
+|---|---|---|---|
+| C1 | `node dsh-redblue/tools/sanitize-lint.mjs --strict --json dsh-redblue` | **0** | `checkedFiles=90`、`blockers=0`、`warnings=2`（仅 `skills/purple-verify/SKILL.md:3`、`skills/red-exploit/SKILL.md:3` 的 R11，既有已受理） |
+| C2 | `node --test dsh-redblue/test/scaffold.test.mjs dsh-redblue/test/sanitize.test.mjs dsh-redblue/test/workflow.test.mjs dsh-redblue/test/tool-runtime.test.mjs` | **0** | `tests 116 / pass 115 / fail 0 / skipped 1`；逐文件 scaffold **16**、sanitize **24**（23 pass + 1 skip）、workflow **53**、tool-runtime **23** |
+| C3 | `for f in dsh-redblue/workflow/*.js; do node --check "$f" \|\| exit 1; done` + 全插件 `.js/.mjs` 遍历 | **0** | workflow 10/10；全插件 **28/28**（lib 1、workflow 10、tools 2、tools/lib 11、test 4） |
+| C4 | `node -e "const p=require('./dsh-redblue/package.json');if(p.version!=='0.2.0')throw new Error('version');console.log('version-ok')"` | **0** | 输出 `version-ok` |
+| C5 | `node %TEMP%\t37-verify\structure.mjs` | **0** | 16/10/28/6/10；provider 16/600；9 基线 0 mismatch；gate union 44；files 22 条存在 |
+| C6 | `node %TEMP%\t37-verify\reverse-probes.mjs` | **0** | 22/22 PASS（16 拒绝 + 3 blocked + 3 正向/runtime） |
+| C7 | `node %TEMP%\t37-verify\core-parity.mjs` | **0** | limits/norm/excl/finalize 10/10 同哈希；9 v0.1 core 分组符合预期 |
+| C8 | `node %TEMP%\t37-verify\content-audit.mjs` | **0** | REA provenance/路由/降级/K-1..K-12/无真实样本；INDEX 28 行 |
+| C9 | `node -e "require('node:fs').readdirSync('.work/smoke')"` | **1** | `ENOENT: no such file or directory, scandir 'C:\dsh-workspace\branch1\.work\smoke'`（B1 证据） |
+
+## 17.3 结构审计（当前字节）
+
+| 指标 | 实测 |
+|---|---|
+| 技能 | **16** 个 `skills/*/SKILL.md`；16/16 frontmatter 12 键齐全；description **157–286 码点**（red-reverse **283**）；16/16 含 `触发词：` 与 `不适用：`；`ingests=target` 14 个、`ingests=none` 2 个（red-scope、run）；14/14 target 技能含 4 元素边界句 |
+| red-reverse | `risk=passive`、`requires=authorization`、`ingests=target`；`source-repo=https://github.com/morluto/rea`、`source-commit=d74549e4…`、`source-license=MIT`、`last-verified=2026-11-20`；16,870 B / 198 行（≤300 行/≤24 KiB） |
+| provider | `apply()` 注册 1 个 provider；`list()` = **16** 条、全部 `rank=600`、`provider=dsh-redblue`、`source=bundled`；`lib/index.js` 的 description 与 16 个 SKILL frontmatter **16/16 逐字一致**；lib 仅 import `node:fs/promises`、`node:url`（无静态 peer import） |
+| workflow | **10** 个；`reverse.js` 103,508 B、**35** 个不同 G- ID（含 5 个新增，无 G-CFM）；10 文件 G- ID 并集 **44**（39 冻结 + 5 新增）；9 个 v0.1 workflow 与 design §8.2 基线 **9/9 MATCH** |
+| 参考 | **28** 篇（29 文件含 INDEX）：新增 `references/red/reverse-artifacts.md` 24,079 B（≤48 KiB）；单篇最大 32,841 B；`INDEX.md` 10,628 B、**28 行参考表**、`red-reverse` 出现 6 次、四上游 pin 齐全 |
+| schema / recipes | **6** / **10** |
+| JS/MJS | **28**（lib 1、workflow 10、tools 2、tools/lib 11、test 4），与 design A-12 一致 |
+
+## 17.4 reverse.js 负向 / blocked / runtime 独立探针（node:vm + stub agent，22/22 PASS）
+
+构造与现有测试不同：target `C:/samples/t37-demo.exe`、sha `d×64`、evidence `ev_e×64`、独立 scope/窗口/budget。每个拒绝用例断言 `rejected + exitCode=1 + code=1 + agent 调用 0`。
+
+| 组 | 用例（门禁） | 结果 |
+|---|---|---|
+| 拒绝（16） | 缺 scope（G-ARG-01）；source 通配（G-TGT-02）；相对 workDir（G-PATH-01）；workDir 穿越（G-PATH-01）；runtime+passive（G-RT-01）；runtime+dryRun（G-RT-01）；非法 mode（G-MODE-01）；未知 args 键（G-ARG-01）；多目标（G-TGT-05）；非 source 目标（G-TGT-05）；runtime 缺 confirm（G-RT-02）；confirm 不符（G-RT-02）；confirm 大小写不符（G-RT-02）；runtime=false 带 confirm（G-RT-02）；相对 source（G-TGT-03）；source 穿越（G-TGT-03） | **16/16 rejected/exit1/0 agent** |
+| blocked（3） | probe `reaAvailable=false` → `G-REA-01`；probe 返回 `{gate:"G-REA-01"}`；probe 成功但 target sha 为空 → `G-REA-02` | **3/3 `status=blocked`、`exitCode=1`、`artifacts=[]`、`agents.analysis=0`、仅 1 次 probe agent 调用** |
+| 正向（3） | 静态 `runtime=false` 全链路；`runtime=true` + provider 缺失；confirm 反斜杠+尾斜杠归一化 | 静态：`clean/exit0/sealed`、**artifacts 7 + scan-manifest = 8 文件**、runtime 未调用、`stages.runtime.agents=0`；runtime requested：`clean/exit0`、`runtimeExecuted=false`、`stages.runtime.status=completed/agents=1`、limitation 含“runtime=true 但未执行”；confirm 归一化：`clean/exit0` ✅ |
+
+说明：`runtime=false` 时 `reverse-runtime` agent 调用数为 0，`reverse.json` 的 `runtime.requested/executed=false`、`stages.runtime.status="skipped"`；`runtime=true` 只进入 runtime 阶段一次且 provider 缺失不阻塞（`executed=false` + degraded）。
+
+## 17.5 零回归
+
+| 证据 | 结果 |
+|---|---|
+| lint | 90 文件 / 0 blocker / 2 warning（两处既有 R11，未新增） |
+| 测试 | 116（115 pass + 1 skip；skip 为依赖 `.work/sources` 的既有用例，t33 清理后按设计跳过） |
+| 语法 | 28/28 `node --check` 通过（含 `workflow/reverse.js`） |
+| design §8.2 基线 | 9 个 v0.1 workflow 全部 **MATCH**（assess `e811ebdc…`、exploit `4cbce71c…`、harden `8d42bb22…`、hunt `1d322287…`、ir `8001bdd6…`、post `e582fc0d…`、purple `c7cfde97…`、recon `5431c33c…`、triage `aa700b20…`） |
+| 共享段 | limits `54f3f88b…`、normalizeFinding `fc3b7f3b…`、exclusionHits `8e0a96be…`、finalize `23900613…` 均 **10/10 同哈希**；非 confirm 7 核同 `1dafdeaa…`、confirm 2 核同 `b668e1ff…`，reverse 核因新增 G-RT/G-REA 块而独立（`1ca97997…`，符合设计，9 个 v0.1 字节不变） |
+| git 改动面 | 基线 `277ec2e` 上仅 **10 改 + 4 新**、无删除：改 `NOTICE/README/DETAIL/lib/package/policy/INDEX/test×2/lint`；新 `docs/design-addendum…`、`references/red/reverse-artifacts.md`、`skills/red-reverse/SKILL.md`、`workflow/reverse.js` |
+
+## 17.6 REA 内容与净化（当前字节）
+
+| 项 | 实测 |
+|---|---|
+| SKILL | 16,870 B / 198 行；4 元素安全边界 **4/4**；`binary_session` probe、`G-RT-01/02` 均在；PE/ELF/托管/APK/ASAR/WASM/固件/PCAP/Electron **9/9 提及** |
+| 参考 provenance | `<!-- dsh-redblue:provenance … -->` + JSON（`source=rea-agents@6.9.0`、`license=MIT`、`derived=true`、`last-verified=2026-11-20`）+ 六键（source-repo/commit/license/path/last-verified/rewrite-summary）；pin 为 `d74549e4…` |
+| 路由表 | 覆盖 13 类（pe/elf/managed-pe/apk/asar/javascript/electron/wasm/firmware/pcap/evm/archive/unknown），12 行表；另含“按问题选工具”表 |
+| 降级矩阵 | JADX/ADB/apktool/WABT/GDB/TShark/Wakaru/JEB/Hopper/IDA/Ku **11/11 在案** |
+| 已知缺陷 | **K-1..K-12 全在**；hardening Windows bug 原文（`Structured content does not match the tool's output schema…data/normalized_result/artifact/path must match pattern`）在案 |
+| 净化抽样 | 两个新文件 + INDEX：无 `AKIA/AIza/ghp_/sk_live/PEM`、无邮箱、无私有 IP；非保留域仅 `github.com`（`scaffold.test` 系 `test/scaffold.test.mjs` 文件名误匹配，非域名/目标） |
+| INDEX | 10,628 B；28 行参考映射；`red-reverse` 6 次；REA commit 与四上游 pin 齐全 |
+
+## 17.7 package 0.2.0 与 files 白名单
+
+- `package.json` version=`0.2.0`，`description` 为 16 bundled / 10 gated；`files` 共 **22** 条，逐条 `existsSync` 全部存在（0 missing）。
+- 新增文件覆盖：`skills/red-reverse/SKILL.md`（`skills`）、`references/red/reverse-artifacts.md`（`references`）、`workflow/reverse.js`（`workflow`）；`docs/install.md`、`docs/delivery-summary.md` 已在白名单。
+- `docs/design-addendum-v0.2-reverse.md` **不在** `files` 白名单（设计 A-08 要求，已核对）。
+- 插件根 `.git` 属开发审计辅助，不在 `files` 白名单，不影响 npm 打包。
+
+## 17.8 E2E 证据核验：BLOCKED（验收项 6 无法完成）
+
+| 检查 | 结果 |
+|---|---|
+| `test -d .work` | exit **1**（不存在） |
+| `test -e .work/smoke` | exit **1**（不存在） |
+| `node -e "require('node:fs').readdirSync('.work/smoke')"` | exit **1**，`ENOENT: no such file or directory, scandir 'C:\dsh-workspace\branch1\.work\smoke'` |
+
+- 原因：t33（completed，2026-11-20T02:45:57Z，本地 10:45）执行“`.work` 彻底清理”，`changedPaths` 含 `.work`；`docs/delivery-summary.md:232` 记录删除 `.work/smoke`（462 文件 / 3.9 MB）；`:249` 明确“原始产物已删除，不可再复算；结论与命令仍保留”。
+- 因此本轮**无法**对 `.work/smoke` 做“只读核验 14/14 零 mismatch”；任务同时禁止“重跑真实 workflow”，也没有要求重建 `.work`。
+- 历史记录仍在：`docs/smoke-report.md`（34,397 B）§11 有 recon/assess 的逐件产物 SHA256 表（14 行），`docs/verification-report.md` §15.6（t26）曾对磁盘复算 14/14；但二者均为历史证据，不能替代当前字节的独立复算。
+
+## 17.9 Blocking 清单
+
+**B1（blocker，验收项 6 无法完成；非插件代码缺陷）**
+
+- 问题：验收要求“E2E 证据（`.work/smoke`）保持只读核验 14/14 零 mismatch（不重跑真实 workflow）”，但当前工作树无 `.work`/`.work/smoke`，无法执行该核验。
+- 证据：§17.8 的三条命令（`test -d .work` exit 1；`test -e .work/smoke` exit 1；`readdirSync` exit 1 ENOENT）；t33 `changedPaths` 含 `.work`；`docs/delivery-summary.md:232/:249`。
+- 复现：`cd C:\dsh-workspace\branch1 && node -e "require('node:fs').readdirSync('.work/smoke')"` → exit 1 ENOENT。
+- 修复建议（需 captain 决策，本轮不代为修复）：
+  1. 若必须当前字节核验：另开授权任务重建 `.work` 并重跑 recon/assess 两段 E2E（会产生真实 workflow 运行与新产物），随后再做 14/14 复算；或
+  2. 若保留“不重跑”约束：修订 t37 验收项为“历史 E2E 证据（`docs/smoke-report.md` §11 + `verification-report.md` §15.6）为历史记录，原始产物已按 t33 清理”，并明确 waiver。
+- 影响：仅阻塞 t37 验收；插件 v0.2.0 的代码/门禁/内容/回归检查本身 0 blocker。
+
+## 17.10 非阻塞观察
+
+- **O-1（low，设计文档偏差）**：design addendum §8.3 预估新增测试分布 scaffold 5 / workflow 9 / sanitize 3（合计 17），当前实际为 scaffold **+7**、workflow **+10**、sanitize **+0**（16/53/24），总数仍为 116（+17，115 pass + 1 skip），A-10 总数成立；仅分布与设计表不一致。
+- **O-2（low，设计文档偏差）**：addendum §1.1 称“参考 27 → 27 不变”，交付实际为 **28** 篇（新增 `references/red/reverse-artifacts.md`；INDEX 28 行）；§1.2 文件清单未列该参考，t35/t36/README/INDEX 按 28 陈述。验收写“27+ 参考”，不阻塞。
+- **O-3（info）**：`.work` 的删除使历史 smoke 路径不可复算（`delivery-summary §8.3`），这是 B1 的根因；不属于 v0.2.0 引入的缺陷。
+
+## 17.11 总体判定与改动声明
+
+**FAIL。** 依据：7 项验收中 6 项通过（结构、reverse 门禁/blocked/runtime、零回归、REA 内容、package、blocker 规则），唯一不满足的是 E2E 项——`.work/smoke` 已被 t33 整体删除，无法做只读 14/14 核验，且任务禁止重跑真实 workflow。插件当前字节本身 0 blocker（lint 90/0/2、116 测试、28/28 语法、9 workflow 基线全同、10 段共享核一致、22/22 门禁探针）。
+
+改动声明：
+- 仅追加修改 `dsh-redblue/docs/verification-report.md`（本部分）；未改 `lib/`、`skills/`、`references/`、`workflow/`、`tools/`、`test/`、`schema/`、`policy/`、`package.json`、`README.md`、`docs/design-addendum-v0.2-reverse.md` 等被验证文件。
+- 临时验证脚本仅在 `%TEMP%\t37-verify\`（structure / reverse-probes / core-parity / content-audit），不属于插件；未创建/修改 `.work`（已不存在），未发起网络请求、未运行白名单配方、未重跑真实 workflow。
+
+---
+
+# 第 5 部分附：t37 attempt 2 —— 按修订验收（E2E waiver）复验
+
+> 复验人：verifier2；时间：2026-11-20（UTC+8，16:0x）；对象：与 §17 相同的当前字节（t41/t42 已由 captain 取消，本轮无代码改动；git 工作区变化仅本报告）。**本节按修订后的 t37 契约复跑，取代 §17 的 FAIL 判定**；§17 保留为 attempt 1 原始记录，其 B1 基于旧验收（`FAIL` 不是代码缺陷）。
+
+## 18. 结论摘要
+
+| 项 | 结果 |
+|---|---|
+| 总体判定 | **PASS（0 blocker，修订契约下 7/7 验收通过）** |
+| 契约修订 | E2E 项改为 **waiver**：`.work` 已按用户要求在 t33 交付时整体删除，**不得重建、不得重跑真实 workflow、不得伪造证据**；改为核对 `docs/smoke-report.md §11` 与 `docs/verification-report.md §15.6` 的历史证据，并显式标注“v0.2.0 未重跑真实 E2E，仅代码/门禁/回归验证” |
+| 结构 | 16 技能 / 10 workflow / 28 参考 + INDEX / 6 schema / 10 recipes；provider list=16 全 rank 600；lib 描述与 frontmatter 16/16 逐字一致；JS/MJS 28 |
+| reverse.js | 独立 node:vm **22/22**：16 类拒绝均 `rejected/exit1/0 agent`；3 类 blocked `artifacts=[]/0 分析 agent`；runtime=false 跳过、runtime=true 降级不阻塞、confirm 归一化通过 |
+| 零回归 | lint **90/0/2**；测试 **116（115 pass + 1 skip）**；`node --check` **28/28**；9 个 v0.1 workflow 与 design §8.2 **9/9 MATCH**；limits/norm/excl/finalize **10/10 同哈希** |
+| REA 内容 | SKILL 16,870 B/198 行；参考 24,079 B/245 行；provenance 六键+pin；13 类路由；11 provider 降级；K-1..K-12；无凭据/真实域名/私有 IP；INDEX 28 行 |
+| package | 0.2.0；files 22 条全存在；新增 4 文件由目录条目覆盖；addendum 不入包 |
+| E2E waiver | 历史证据核对通过：smoke-report §11 recon/assess 各 7 行（合计 14 行）全 OK、`mismatch 0/7`×2、`status=clean/exitCode=0`；verification-report §15.6 记录 14/14 零 mismatch（completed/exit 0/dryRun/passive）；`.work` 仍不存在（未重建） |
+| Blocking | **空（0）**；§17 的 B1 已随契约修订关闭（验收缺陷，非代码缺陷） |
+
+## 18.1 契约修订与 E2E waiver 证据
+
+- 修订来源：captain 于 2026-11-20 16:03（UTC+8）通过团队消息下发“t37 契约已修订（attempt 2）”；团队状态中 t41（engineer2 repair）与 t42（verifier2）均 **cancelled**（理由：“B1 是验收项引用已删除的 `.work/smoke` 的验收缺陷，不是代码缺陷；正确处置是修订验收为历史证据 waiver 后重试，而非让 engineer 补 E2E 或伪造证据”）。
+- 本轮**未重建 `.work`**、**未重跑真实 workflow**、**未伪造任何 E2E 产物**；`test -d .work` 与 `test -e .work/smoke` 均为 exit 1（不存在）。
+- 历史证据核对（独立解析，非引用旧结论）：
+
+| 证据源 | 核对结果 |
+|---|---|
+| `docs/smoke-report.md` §11.3（recon） | 逐件表 **7 行**，实际字节 = manifest 字节，SHA256 全 `OK`，`mismatch = 0/7` |
+| `docs/smoke-report.md` §11.4（assess） | 逐件表 **7 行**，实际字节 = manifest 字节，SHA256 全 `OK`，`mismatch = 0/7` |
+| `docs/smoke-report.md` §11.7 | recon/assess 均 `status=clean`、`exitCode=0` |
+| `docs/verification-report.md` §15.6 | recon/assess 各 7 件（**14/14**），`mismatch=0`、`status=completed`、`exitCode=0`、`dryRun=true`、`mode=passive` |
+| 合计 | 14 个 artifact 哈希行、7 个不同产物名（每段 7 行）；两段 `mismatch 0/7` 均成立 |
+
+> 明确声明：**v0.2.0 未重跑真实 E2E，仅完成代码/门禁/回归验证**；上述 14/14 为 2026-11-19 历史运行（原始 `.work/smoke` 已由 t33 按用户要求删除，不可再复算，`delivery-summary §8.3` 已记录）。
+
+## 18.2 本轮命令表（与 §17 相同字节的重新执行）
+
+| # | 命令 | 退出码 | 关键证据 |
+|---|---|---|---|
+| C1 | `node dsh-redblue/tools/sanitize-lint.mjs --strict --json dsh-redblue` | **0** | 90 文件 / 0 blocker / 2 warning（R11 purple-verify:3、red-exploit:3，既有受理） |
+| C2 | `node --test ...scaffold/sanitize/workflow/tool-runtime` | **0** | 116 测试：115 pass + 1 skip（依赖 `.work/sources` 的既有用例，t33 清理后按设计跳过） |
+| C3 | `for f in dsh-redblue/workflow/*.js; node --check` + 全插件遍历 | **0** | 10/10 workflow；全插件 28/28 |
+| C4 | `node -e "...p.version!=='0.2.0'..."` | **0** | `version-ok` |
+| C5 | `node %TEMP%\t37-verify\structure.mjs` | **0** | 16/10/28/6/10；provider 16/600；9 基线 0 mismatch；gate union 44；files 22 存在；addendum 不入包 |
+| C6 | `node %TEMP%\t37-verify\reverse-probes.mjs` | **0** | 22/22 PASS |
+| C7 | `node %TEMP%\t37-verify\core-parity.mjs` | **0** | limits/norm/excl/finalize 10/10 同哈希 |
+| C8 | `node %TEMP%\t37-verify\content-audit.mjs` | **0** | SKILL/参考/INDEX/净化全通过 |
+| C9 | `node %TEMP%\t37-verify\waiver-check.mjs` | **0** | 14 artifact 行（7+7）、`mismatch 0/7`×2、§15.6 命中、`.work` 与 `.work/smoke` 均不存在 |
+
+## 18.3 验收项核对（修订契约，7/7）
+
+| # | 验收项 | 判定 | 证据 |
+|---|---|---|---|
+| 1 | verification-report.md 追加 v0.2.0 章节（命令/退出码/证据/PASS-FAIL） | 通过 | §17（attempt 1）+ 本节 §18（attempt 2，含 waiver 声明） |
+| 2 | 结构：16 技能/10 workflow/27+ 参考/6 schema/10 recipes；provider 16/600；无静态 peer import | 通过 | §18.2 C5；red-reverse 283 码点、12 键、负向边界、risk/requires/ingests |
+| 3 | reverse.js 负向/blocked/runtime | 通过 | §18.2 C6：22/22；16 拒绝 `rejected/exit1/0 agent`；blocked `artifacts=[]/0 分析 agent`；runtime=false 未执行 |
+| 4 | 无回归：lint 0 blocker（仅 2 R11）、测试全绿、node --check、10 workflow 共享段一致 | 通过 | C1/C2/C3/C7；9 baseline MATCH；4 段 10/10 同哈希 |
+| 5 | REA 参考：provenance/路由/降级/已知缺陷/无真实样本凭据 | 通过 | C8；provenance 六键+pin；13 类路由；K-1..K-12；无 secrets/emails/private IP |
+| 6 | package 0.2.0 + files 覆盖新增文件；E2E（waiver） | 通过 | C4/C5；files 22 条全存在、新增 4 文件覆盖；E2E 按 §18.1 waiver 核对历史证据并显式声明未重跑 |
+| 7 | 无 blocker 才 completed；有则 failed+清单 | 通过 | 修订契约下 0 blocker；§17 的 B1 已由契约修订关闭 |
+
+## 18.4 非阻塞观察（captain 已确认记录即可，不影响 PASS）
+
+- **O-1（low）**：design addendum §8.3 预估新增测试分布 scaffold 5 / workflow 9 / sanitize 3；实际 scaffold +7、workflow +10、sanitize +0（16/53/24），总数 116（+17，115 pass + 1 skip）与 A-10 一致。
+- **O-2（low）**：addendum §1.1 称“参考 27→27 不变”，交付实际 28 篇（新增 `references/red/reverse-artifacts.md`，INDEX 28 行）；验收写“27+ 参考”，不阻塞。
+
+## 18.5 总体判定与改动声明
+
+**PASS。** 依据：修订契约下 7/7 验收通过；v0.2.0 插件当前字节 0 blocker（lint 90/0/2、116 测试、28/28 语法、9 baseline 全同、共享段 10/10、22/22 门禁探针、REA 内容合规、package/files 合规）；E2E 项以 waiver 方式核对历史证据（smoke-report §11 14 行、verification-report §15.6 14/14）并显式声明“v0.2.0 未重跑真实 E2E，仅代码/门禁/回归验证”。§17 的 FAIL/B1 为 attempt 1 旧验收下的记录，现已关闭，保留可审计。
+
+改动声明：
+- 仅追加修改 `dsh-redblue/docs/verification-report.md`（§17 + 本节 §18）；未改任何被验证代码/技能/参考/测试/配置/其它 docs。
+- 临时脚本仅在 `%TEMP%\t37-verify\`（新增 waiver-check.mjs），不属于插件。
+- 未重建/修改 `.work`（仍不存在），未重跑真实 workflow，未发包，未运行白名单配方，未伪造 E2E 证据。
+
+---
+
+# 第 6 部分：t43 + t46 增量验证（t47 / verification-round-3）
+
+> 独立验证者：verifier2；时间：2026-11-20（UTC+8，16:3x）；对象：**t43（文档/入口）+ t46（lib 同步）后的当前字节**。只读被验证文件，仅追加本文件；本轮重新执行/重新计算，未复用旧结论。
+
+## 19. 结论摘要
+
+| 项 | 结果 |
+|---|---|
+| 总体判定 | **PASS（0 blocker，7/7 验收通过）** |
+| 测试恢复 | 4 文件 **116 total / 115 pass / 0 fail / 1 skip**（scaffold **16/16**、sanitize 23+1 skip、workflow 53、tool-runtime 23）；t43 的 V-6 两条 scaffold 失败已清零 |
+| 静态门禁 | lint **90 文件 / 0 blocker / 2 warning**（仅既有 R11 purple-verify:3、red-exploit:3）exit 0；`node --check` **28/28**（workflow 10/10） |
+| run/lib | `skills/run/SKILL.md` frontmatter 与 `lib/index.js` 的 `dsh-rb-run` 回退 description **344/344 码点逐字相等**（DESC-MATCH）；provider list=**16**、全部 rank=**600** |
+| 结构 | **16 技能 / 10 workflow / 28 参考 / 6 schema / 10 recipes / 44 门禁**；9 个 v0.1 workflow 与 design §8.2 **9/9 MATCH**；limits/norm/excl/finalize 10/10 同哈希 |
+| reverse / REA | 独立 node:vm 探针 **22/22**（16 拒绝、3 blocked、runtime 降级/跳过/confirm 归一化）；REA SKILL/参考 provenance、13 类路由、11 provider 降级、K-1..K-12 均在 |
+| 文档 | README/DETAIL/architecture/value-extraction 均含 **16/10/28/44** 且与真实仓库一致；run 含 **10 workflow + reverse/REA**；两张 SVG **XML_OK、无 script/href/javascript** |
+| E2E waiver | 维持：`.work` 不存在（未重建）、未重跑真实 workflow；smoke-report §11 14 行 + verification-report §15.6 14/14 仍成立 |
+| 改动面 | 自 t37 完成后仅 t43 的 6 文件 + t46 的 2 文件（+ 本报告）变化；无其它代码/技能/参考改动 |
+
+## 19.1 环境
+
+| 项 | 值 |
+|---|---|
+| 主机/运行时 | Windows x64；Node **v24.22.1** |
+| 工作树 | `C:\dsh-workspace\branch1`；插件 `dsh-redblue` 0.2.0；git 基线 `277ec2e` |
+| 变更来源 | t43：architecture.md、architecture-plugin.svg、architecture-workflow.svg、value-extraction.md、assembly-report.md、skills/run/SKILL.md；t46：lib/index.js、test/scaffold.test.mjs |
+| 证据限制 | 未重跑真实 workflow/未发包/未运行配方；`.work` 未重建（仍不存在）；临时脚本在 `%TEMP%\t37-verify\` 与 `%TEMP%\t47-verify\`（doc-audit.mjs） |
+
+## 19.2 命令表（本轮实际执行）
+
+| # | 命令 | 退出码 | 关键证据 |
+|---|---|---|---|
+| C1 | `node --test dsh-redblue/test/{scaffold,sanitize,workflow,tool-runtime}.test.mjs` | **0** | `tests 116 / pass 115 / fail 0 / skipped 1`；逐文件 16/24(23+1 skip)/53/23 |
+| C2 | `node dsh-redblue/tools/sanitize-lint.mjs --strict --json dsh-redblue` | **0** | `checkedFiles=90`、`blockers=0`、`warnings=2`（既有 R11） |
+| C3 | `for f in dsh-redblue/workflow/*.js; do node --check "$f" \|\| exit 1; done` + 全插件遍历 | **0** | workflow 10/10；全插件 `.js/.mjs` 28/28 |
+| C4 | 契约 `DESC-MATCH`（SKILL description 是否被 lib 包含） | **0** | 输出 `DESC-MATCH`；frontmatter 344 码点 = lib fallback 344 码点（entry 逐字相等） |
+| C5 | `node %TEMP%\t37-verify\structure.mjs` | **0** | 16/10/28/6/10、gate union 44、provider 16 全 600、lib 描述 16/16、9 baseline 0 mismatch、JS 28 |
+| C6 | `node %TEMP%\t37-verify\reverse-probes.mjs` | **0** | `SUMMARY {"pass":22,"fail":0}` |
+| C7 | `node %TEMP%\t37-verify\content-audit.mjs` | **0** | REA provenance/路由/降级/K-1..K-12 通过；无 secrets/emails/private IP |
+| C8 | `node %TEMP%\t47-verify\doc-audit.mjs` | **0** | 4 文档 16/10/28/44 全命中；run 10 workflow；SVG XML_OK/无 script/href/javascript；`.work` absent |
+| C9 | `node %TEMP%\t37-verify\waiver-check.mjs` | **0** | 14 artifact 行（7+7）、mismatch 0/7×2、§15.6 命中、`.work`/`.work/smoke` 不存在 |
+| C10 | mtime 变更面审计（cutoff 为 t37 完成后） | **0** | 仅 9 个文件：本报告 + t43 6 文件 + t46 2 文件（见 §19.8） |
+
+## 19.3 run/lib 一致性与 provider
+
+- `skills/run/SKILL.md` frontmatter `description`：**344 码点**，含 `10 个授权门禁工作流`、`reverse`/`REA` 触发词。
+- `lib/index.js` 的 `dsh-rb-run` fallback description：**344 码点**；`lib.includes(frontmatter)` = true，且 lib 条目值 `===` frontmatter（逐字相等）。
+- 契约命令 C4 输出 `DESC-MATCH`；scaffold 的 provider/一致性断言 16/16 通过（t43 的 2 条失败已清零）。
+- 独立 provider 探针：`list()` = 16 条、全部 `rank=600`、`provider=dsh-redblue`、`source=bundled`；lib 描述与 16 个 SKILL frontmatter 16/16 逐字一致。
+
+## 19.4 测试与静态门禁（当前字节）
+
+| 文件 | tests | pass | fail | skip |
+|---|---|---|---|---|
+| `test/scaffold.test.mjs` | 16 | 16 | 0 | 0 |
+| `test/sanitize.test.mjs` | 24 | 23 | 0 | 1（依赖 `.work/sources`，t33 清理后按设计 skip） |
+| `test/workflow.test.mjs` | 53 | 53 | 0 | 0 |
+| `test/tool-runtime.test.mjs` | 23 | 23 | 0 | 0 |
+| **合计** | **116** | **115** | **0** | **1** |
+
+- lint：90 文件 / 0 blocker / 2 warning（`skills/purple-verify/SKILL.md:3`、`skills/red-exploit/SKILL.md:3`，既有 R11 已受理）。
+- `node --check`：全插件 28/28（lib 1、workflow 10、tools 2、tools/lib 11、test 4）。
+
+## 19.5 结构/内容未被 t43/t46 破坏
+
+| 项 | 实测 |
+|---|---|
+| 结构 | 16 技能（description 157–286，red-reverse 283；12 键 16/16）；10 workflow；28 参考（+INDEX=29 文件）；6 schema；10 recipes；gate union **44**（含 G-TGT-05/G-REA-01/02/G-RT-01/02） |
+| 零回归 | 9 个 v0.1 workflow 与 design §8.2 基线 **9/9 MATCH**；limits `54f3f88b…`、normalizeFinding `fc3b7f3b…`、exclusionHits `8e0a96be…`、finalize `23900613…` 均 **10/10 同哈希** |
+| reverse.js | 独立探针 **22/22**：16 类拒绝 `rejected/exit1/0 agent`；3 类 blocked `status=blocked/exit1/artifacts=[]/0 分析 agent`；runtime=false 0 调用、runtime=true provider 缺失 `executed=false` 不阻塞；confirm 归一化通过 |
+| REA | SKILL 16,870 B/198 行、4 元素边界 4/4；参考 24,079 B/245 行、provenance 六键+pin（rea-agents@6.9.0/MIT/derived/2026-11-20）、13 类路由、11 provider 降级、K-1..K-12 含 hardening Windows schema 错误原文；无凭据/真实域名/私有 IP；INDEX 28 行 |
+
+## 19.6 文档计数与 SVG（与真实仓库一致）
+
+| 文档 | 16 技能 | 10 workflow | 28 参考 | 44 门禁 | 字节 |
+|---|---|---|---|---|---|
+| `README.md` | ✓ | ✓ | ✓ | ✓ | 18,257 |
+| `docs/DETAIL.md` | ✓ | ✓ | ✓ | ✓ | 12,720 |
+| `docs/architecture.md` | ✓ | ✓ | ✓ | ✓ | 30,596 |
+| `docs/value-extraction.md` | ✓ | ✓ | ✓ | ✓ | 13,720 |
+| `skills/run/SKILL.md` | 未陈述（非其职责） | ✓（10 个授权门禁工作流） | 未陈述 | 未陈述 | 10,311 |
+
+- 真实仓库计数（独立复算）：16 技能、10 workflow、28 参考（29 文件含 INDEX）、44 门禁 —— 与上述文档陈述一致。
+- 历史/算术引用核对：architecture.md 中 `9`（v0.1 workflow 数）、`27`（既有门禁数）、`39`（v0.1 冻结门禁数）均为正确的历史/分解引用，不是陈旧主计数；README/DETAIL/value-extraction/run 无陈旧主计数。
+- SVG：`docs/architecture-plugin.svg`（18,754 B）与 `docs/architecture-workflow.svg`（31,648 B）均 `XML_OK`、root=`svg`、无 `<script>`、无 `href` 属性、无 `javascript:`。
+
+## 19.7 E2E waiver（维持）
+
+- `.work` 与 `.work/smoke` 均不存在（`test -d` / `test -e` exit 1）；本轮未重建、未重跑真实 workflow、未伪造证据。
+- 历史证据独立解析：`docs/smoke-report.md` §11 = recon 7 行 + assess 7 行 = **14 个产物行**，实际字节=manifest、SHA256 全 `OK`、`mismatch 0/7`×2、§11.7 `status=clean/exitCode=0`；`docs/verification-report.md` §15.6 = **14/14 零 mismatch**（`status=completed`、`exitCode=0`、`dryRun=true`、`mode=passive`）。
+- 报告已保留显式声明：**v0.2.0 未重跑真实 E2E，仅代码/门禁/回归验证；历史 E2E 证据属 v0.1.0**。
+
+## 19.8 改动面（自 t37 完成后）
+
+mtime 审计（cutoff = t37 完成后的 08:05Z 之后）显示仅 9 个文件变化：
+
+| 来源 | 文件 |
+|---|---|
+| t43（6） | `skills/run/SKILL.md`、`docs/value-extraction.md`、`docs/architecture-plugin.svg`、`docs/architecture-workflow.svg`、`docs/architecture.md`、`docs/assembly-report.md` |
+| t46（2） | `lib/index.js`、`test/scaffold.test.mjs` |
+| 本报告（1） | `docs/verification-report.md` |
+
+无其它代码/技能/参考/workflow/tools/policy/package 改动；9 个 v0.1 workflow 仍与 design §8.2 基线逐字节一致。
+
+## 19.9 Blocking 清单
+
+**空（0 blocker）。**
+
+## 19.10 非阻塞观察
+
+- **O-3（info）**：`skills/run/SKILL.md` 作为入口技能只陈述“10 个授权门禁工作流”与 reverse/REA 路由，未重复 16/28/44；与真实仓库无矛盾（16/28/44 由 README/DETAIL/architecture/value-extraction 覆盖）。
+- **O-4（info）**：architecture.md §2.4 注记“reverse 使用 32 个（27 既有 + 5 新增）”与源码文本中 35 个 G- ID 不矛盾：35 减去 reverse 不可达的 `G-DS-04/05`（`requireBaselineMeta=false`）与写盘阶段的 `G-OUT-01` 即 32；该注记按“preflight/probe 实际判定”计，属正确口径。
+
+## 19.11 总体判定与改动声明
+
+**PASS。** 依据：t43+t46 后当前字节 0 blocker —— 测试 116（115 pass + 1 skip，scaffold 失败清零）、lint 90/0/2、`node --check` 28/28、run/lib 344 码点逐字一致（DESC-MATCH）、provider 16/600、结构 16/10/28/6/10/44、9 baseline 9/9、共享段 10/10、reverse 探针 22/22、REA 内容合规、4 文档计数一致、SVG 无脚本且可解析、E2E waiver 历史证据仍成立；改动面仅 t43/t46 声明的 8 文件（+本报告），无未声明改动。
+
+改动声明：
+- 仅追加修改 `dsh-redblue/docs/verification-report.md`（本部分 §19）；未改任何被验证代码/技能/参考/测试/配置/其它 docs。
+- 临时脚本仅在 `%TEMP%\t37-verify\` 与 `%TEMP%\t47-verify\`（doc-audit.mjs），不属于插件。
+- 未重建/修改 `.work`（仍不存在），未重跑真实 workflow，未发包，未运行白名单配方，未伪造 E2E 证据。

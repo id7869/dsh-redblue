@@ -38,6 +38,11 @@ const UPSTREAM = {
     commit: "8db295a5b3564be2b430bb3a9afdb4db7850fa24",
     license: "Apache-2.0",
   },
+  rea: {
+    repo: "https://github.com/morluto/rea",
+    commit: "d74549e495c58eb4a560279fd9f05508401ea0a0",
+    license: "MIT",
+  },
 };
 const UPSTREAM_LIST = Object.values(UPSTREAM);
 const UPSTREAM_REPOS = UPSTREAM_LIST.map((u) => u.repo);
@@ -48,6 +53,8 @@ const SOURCE_DIRS = new Map([
   [UPSTREAM.acs.repo, "acs"],
   [UPSTREAM.strix.repo, "strix"],
 ]);
+// 注：REA 不加入 SOURCE_DIRS —— .work/sources 无 REA 快照，sourcePathStatus 返回 null，
+// 跳过 source-path 存在性校验（避免离线/打包环境误报）。
 let sourceRootCache;
 function sourceRoot() {
   if (sourceRootCache !== undefined) return sourceRootCache;
@@ -182,6 +189,7 @@ const EXPECTED_SKILLS = {
   "dsh-blue-harden": { lane: "blue", risk: "passive", requires: "none" },
   "dsh-purple-verify": { lane: "purple", risk: "passive", requires: "authorization" },
   "dsh-rb-triage": { lane: "rb", risk: "passive", requires: "authorization" },
+  "dsh-red-reverse": { lane: "red", risk: "passive", requires: "authorization" },
 };
 const CANONICAL_SKILLS = Object.keys(EXPECTED_SKILLS);
 
@@ -589,11 +597,11 @@ function checkProvenanceMeta(f, prov, out, prefix) {
   }
   const repo = prov.meta["source-repo"];
   if (repo !== undefined && repo !== "" && !UPSTREAM_REPOS.includes(repo)) {
-    out.push(finding("R1-PROVENANCE", f, prov.line, `${prefix}source-repo 不在三上游 pin 内: ${repo}`, repo));
+    out.push(finding("R1-PROVENANCE", f, prov.line, `${prefix}source-repo 不在四上游 pin 内: ${repo}`, repo));
   }
   const commit = prov.meta["source-commit"];
   if (commit !== undefined && commit !== "" && !UPSTREAM_COMMITS.includes(commit)) {
-    out.push(finding("R1-PROVENANCE", f, prov.line, `${prefix}source-commit 不在三上游 pin 内: ${commit}`, commit));
+    out.push(finding("R1-PROVENANCE", f, prov.line, `${prefix}source-commit 不在四上游 pin 内: ${commit}`, commit));
   }
   const license = prov.meta["source-license"];
   if (repo !== undefined && license !== undefined && REPO_LICENSE.has(repo) && REPO_LICENSE.get(repo) !== license) {
@@ -624,11 +632,11 @@ function checkR1Provenance(files) {
     }
     const repo = fm.meta["source-repo"];
     if (repo !== undefined && repo !== "" && !UPSTREAM_REPOS.includes(repo)) {
-      out.push(finding("R1-PROVENANCE", f, keyLine(f, "source-repo"), `source-repo 不在三上游 pin 内: ${repo}`, repo));
+      out.push(finding("R1-PROVENANCE", f, keyLine(f, "source-repo"), `source-repo 不在四上游 pin 内: ${repo}`, repo));
     }
     const commit = fm.meta["source-commit"];
     if (commit !== undefined && commit !== "" && !UPSTREAM_COMMITS.includes(commit)) {
-      out.push(finding("R1-PROVENANCE", f, keyLine(f, "source-commit"), `source-commit 不在三上游 pin 内: ${commit}`, commit));
+      out.push(finding("R1-PROVENANCE", f, keyLine(f, "source-commit"), `source-commit 不在四上游 pin 内: ${commit}`, commit));
     }
     const license = fm.meta["source-license"];
     if (repo !== undefined && license !== undefined && REPO_LICENSE.has(repo) && REPO_LICENSE.get(repo) !== license) {

@@ -204,3 +204,83 @@
 - `docs/design.md` §7.2 的 CIDR 0–32 与实现 /8–/32 差异按 R5 受理；`schema/scope.schema.json` 未加 CIDR pattern（需允许改 schema 的单独授权）。
 - G-DS-01 的 kind 枚举按复审 R3 指令扩为六类（pcap/cloudtrail 均为本地导出）；门禁语义未变：缺数据源仍拒绝、未知 kind 仍 `G-CONF-01`、`value` 仍必须 Windows 绝对路径且不含 `..`。
 - R8：design/requirements 冻结文档债（triage/harden report 阶段、seal attestation）维持受理。
+
+## 11. v0.2.0 逆向 lane 装配与偏差受理（t43，2026-11-20）
+
+- 任务：t43「v0.2.0 文档收口：架构图/价值提炼/装配报告/入口技能同步逆向 lane」
+- 依据：`docs/design-addendum-v0.2-reverse.md`（t34 契约）、t35 内容层、t36 运行时/注册、t37 独立验证（PASS，含 E2E waiver）
+- 结论：**文档与入口已同步 v0.2.0**；v0.1 的 9 个 workflow、39 项既有 `G-*` 文本/顺序、15 个既有技能与 27 篇 v0.1 参考不改。本报告记录 8 项已知偏差/限制（V-1..V-8）：V-1..V-5、V-7、V-8 受理；V-6 为 t43 引入、**已由 t46 关闭**（`lib/index.js` 回退常量与 frontmatter 逐字一致、344 码点；4 测试 116/115/1/0 fail；t47 §19 复验，详见 §11.6）。
+
+### 11.1 装配状态（2026-11-20 实测）
+
+| 项 | 值 | 证据 |
+|---|---|---|
+| 版本 | `dsh-redblue 0.2.0` | `package.json`；desktop profile `link:` 安装且 bundles 含 |
+| 计数 | **16 技能 / 10 workflow / 28 参考（+INDEX）/ 6 schema / 10 recipes / 44 门禁** | `ls`/`find`/`grep` 实测；44 = 39 冻结 + 5 新增 |
+| 参考文件 | 28 篇 = 27 `.md` + `sigma.yml`；29 个文件含 `INDEX.md` | `find references -name '*.md'`=28；`-type f`=29 |
+| 测试（t37 基线） | 116（115 pass + 1 skip）；逐文件 16/24/53/23 | `node --test` 4 文件；t37 §18 |
+| 净化 lint | 90 文件、0 blocker、2 既有 R11 warning | `sanitize-lint --strict --json` |
+| 语法 | 28/28 `node --check` | lib 1 + workflow 10 + tools 2 + tools/lib 11 + test 4 |
+| v0.1 零回归 | 9 个 workflow SHA256 与 design §8.2 9/9 MATCH | `sha256sum`；reverse 为新增第 10 个 |
+| REA | `rea-agents@6.9.0`（MIT，commit `d74549e4…`，skill v62）；255 工具 = 133 即刻 + 63 target_required + 59 硬不可用 | `binary_session`/`rea doctor`；probe 不写死数字 |
+
+### 11.2 偏差与受理
+
+| ID | 偏差/限制 | 证据 | 受理/处置 |
+|---|---|---|---|
+| V-1 | `inspect_binary_hardening` 在 Windows 绝对路径返回客户端 schema 错误（REA 已知缺陷） | 调用报 `Structured content does not match the tool's output schema: data/normalized_result/artifact/path must match pattern "^\/"`；分析可能已执行但结果不可用 | **受理**：reverse 不使用该工具；改用 `inspect_pe_load_config`/`inspect_elf_notes`/导入表/人工基线；`degraded[]` 记录；非 Windows 可重试（design addendum K-1） |
+| V-2 | Windows provider 缺口：JADX、ADB、apktool、WABT、固件（Binwalk/Unblob）、GDB/rizin、EVM、pwntools、TShark、Wakaru、JEB、Hopper、IDA/Kuna | `binary_session`/`rea doctor`：provider_missing/provider_unavailable/unsupported_host；参考 §3 矩阵 | **受理**：缺失一律降级并列出 remediation；只有 REA 不可用或目标不可读才 `blocked`；不伪造结论 |
+| V-3 | schema enum 未扩展：`report.status` 枚举不含 `blocked`；`evidence.kind` 无 REA 专用值；reverse 复用 `evidence-ref`/现有字段 | `schema/report.schema.json`、`evidence.schema.json`；reverse finding 映射到 `evidenceRefs`/`basis`/`counterevidence` | **受理**：运行期状态与产物正确；schema 文档债留待下一版 schema 任务（需显式授权改 schema） |
+| V-4 | 共享 report 模板 §3 只列阶段/techniques/dataSources，未包含 route/provider 信息 | `workflow/reverse.js` 的 `buildReportDoc`；route/provider 在 `reverse.json.probe/route` 与 `coverage.limitations`/`degraded` | **受理**：机器可读信息在 `reverse.json`；报告 §5 limitations 已写 degraded；建议 v0.3 将 route/provider 表加入共享模板 |
+| V-5 | `cordis.patch.yml` 注释仍写 v0.1 “注册 15 个 bundled skill” | 文件第 3 行；实际 patch body 正确，provider 已注册 16 | **受理**（注释级、无运行时影响）；t43 outOfScope；建议随下一版 lib/package 维护同步 |
+| V-6 | `skills/run/SKILL.md` description 已改为“10 个授权门禁工作流”并加入 reverse/REA，但 `lib/index.js` 的 `dsh-rb-run` 回退常量仍为 v0.1 “9 个…”；scaffold 的 2 条一致性断言失败 | t43 时：`test/scaffold.test.mjs` 的 fallback `/9 个授权门禁工作流/` 与 `frontmatter description drifted from lib fallback constant` 失败；t43 只允许改 run 技能，lib/test 冻结 | **closed（t46，2026-11-20）**：`lib/index.js` 回退 description 逐字改为新 frontmatter（344 码点，`DESC-MATCH`）；`test/scaffold.test.mjs` 仅按最小授权把硬编码期望改为“10 个授权门禁工作流”并新增 `/reverse/` 断言；4 测试 **116/115/1/0 fail**；t47 §19 复验通过。不得以改测试掩盖：本项关闭依据是 lib 与 frontmatter 逐字一致，而非放宽断言 |
+| V-7 | O-1：design addendum §8.3 预测新增测试分布 5/9/3（scaffold/workflow/sanitize），实际 7/10/0（总数仍 +17→116） | t37 实测逐文件 16/24/53/23；v0.1 为 9/24/43/23 | **受理**：分布差异来自测试落位（文档断言放 scaffold/workflow，sanitize 未增）；总数与验收一致 |
+| V-8 | O-2：design addendum §1.1 写“参考 27→27 不变”，实际 28（t35 新增 `red/reverse-artifacts.md`） | `find references -name '*.md'`=28；`references/INDEX.md` 已加 REA 行 | **受理**：以 28 为准；本报告的 t43 文档同步已按 28 更新；addendum 原文保留（修订需重评审） |
+
+补充受理：
+
+- **E2E waiver**：v0.2.0 未重跑真实 E2E；t37 以 v0.1 历史 E2E（14/14 零 mismatch）作回归参考并显式 waiver。本报告不把历史 E2E 记为 v0.2 实测；`.work` 未重建。
+- **design/requirements 冻结**：仍为 15/9/39/17 参考/4 schema；v0.2 以 addendum + policy + 代码为准（与 §3 D-1/D-2/D-5、§9.3、§10.4 一致）。
+- **REA 不打包**：`package.json` 依赖仍为空；REA 由宿主 MCP 注册；缺失时 `blocked`（`G-REA-01`），不自动安装。NOTICE/INDEX 已加第 4 上游 MIT pin。
+- **证据包非确定性**：`evidence/rea-evidence.json` 含时间戳/会话状态，`deterministic=false`；只按本次 SHA256 封存，不承诺跨运行字节相同。
+
+### 11.3 t43 变更文件
+
+- `docs/architecture.md`（v3：16/10/28/6/10/44；REA 分层；reverse 阶段图；自查）
+- `docs/architecture-plugin.svg`（16 技能/10 workflow/28 参考/44 门禁；REA 外部虚线框、provider 缺口、blocked 分支）
+- `docs/architecture-workflow.svg`（第 10 个 workflow reverse lane；blocked 0 agent；runtime skip）
+- `docs/value-extraction.md`（15→16、9→10、28 参考、REA MIT lane 价值）
+- `docs/assembly-report.md`（本节）
+- `skills/run/SKILL.md`（description 9→10 + reverse/REA 触发词；路由表 +1 行；blocked 转述）
+
+未改：`lib/`、其他 `skills/`、`references/`、`workflow/`、`tools/`、`test/`、`package.json`、`policy/`、`README.md`、`DETAIL.md`、冻结的 design/requirements、`.work/`、`dsh-security/`。
+
+### 11.4 t43 验证命令与结果
+
+| 命令 | 结果 |
+|---|---|
+| `test $(ls dsh-redblue/skills \| wc -l) -eq 16 && test $(ls dsh-redblue/workflow/*.js \| wc -l) -eq 10` | exit 0（16/10） |
+| `grep -q 'reverse' dsh-redblue/skills/run/SKILL.md && grep -q '10 个' dsh-redblue/skills/run/SKILL.md` | exit 0 |
+| `for f in ...svg; do grep -q '<svg' && ! grep -q '<script' ...` | exit 0（两 SVG 独立可渲染） |
+| `grep -c 'red-reverse' docs/architecture.md docs/architecture-plugin.svg` | 均 >0 |
+| `node tools/sanitize-lint.mjs --strict dsh-redblue` | 90 文件、0 blocker、2 既有 warning（exit 0） |
+| `node --test`（回归参考） | **113 pass + 2 fail + 1 skip**（t43 当时）：2 fail 均为 V-6 的 scaffold 断言（run 新 description 与 lib 旧回退不一致）；value-extraction 测试已通过（保留 v0.1 历史行）；该状态已由 t46 关闭（见 §11.6），当前为 116/115/1/0 fail |
+
+> 说明：上表 `node --test` 在 t43 修改 run 描述后**不再是全绿**；这是 V-6 的直接后果，不掩盖。t37 的 116/115/1 是修改前基线，t46 已恢复并超过基线（4 测试全通过、1 条按设计 skip）。t43 的验收契约只要求 lint 不新增 blocker，未要求测试；V-6 已由 t46 关闭（§11.6），不再阻塞发布。
+
+### 11.5 发布建议
+
+- v0.2.0 代码/门禁/内容可交付；**V-6 已由 t46 关闭**（`lib/index.js` 回退常量与 frontmatter 逐字一致、4 测试 116/115/1/0 fail；t47 §19 复验），发布前无需再改 lib/test；可顺手修 V-5（cordis 注释）与 V-4（report route/provider 表）。
+- V-3（schema enum）与 V-1/V-2（REA 缺陷/provider）属外部/结构性限制，不建议擅自改 schema 或伪造能力；按本报告受理。
+- 发布前仍需：`docs/install.md`/`docs/delivery-summary.md`/`docs/preview.svg` 更新为 v0.2.0（t48 F1，已由 t49 完成，见 §11.6）；t48 F2/F3/F5（SKILL 默认值/architecture 门禁拆解/入口路由测试覆盖）记入交付摘要已知限制。
+
+### 11.6 后续状态更新（t46 / t48 / t49）
+
+| 时间 | 来源 | 状态更新 |
+|---|---|---|
+| 2026-11-20 | **t46** | 关闭 V-6：`lib/index.js` 的 `dsh-rb-run` 回退 description 逐字改为 `skills/run/SKILL.md` 新 frontmatter（344 码点，`DESC-MATCH`）；`test/scaffold.test.mjs` 仅按最小授权修硬编码期望（“10 个授权门禁工作流”）并新增 `/reverse/` 断言；4 测试 **116 total / 115 pass / 0 fail / 1 skip**；范围为 `lib/index.js` + `test/scaffold.test.mjs` 两个文件 |
+| 2026-11-20 | **t47** | 增量验证 PASS（§19）：run/lib 逐字一致、测试恢复 116/115/1、lint 90/0/2、node --check 28/28、v0.1 workflow 零回归 |
+| 2026-11-20 | **t48** | v0.2.0 最终复审 PASS（0 blocker/0 high）：F1（随包 install/delivery/preview 仍旧版）、F2（SKILL 默认值）、F3（architecture reverse 门禁拆解）、F4（本报告 V-6 状态过期）、F5（入口路由测试排除 reverse）记录在 `docs/review-notes.md` §18.8 |
+| 2026-11-20 | **t49** | 关闭 F1：`docs/install.md`、`docs/delivery-summary.md` 重写为 v0.2.0，`docs/preview.svg` 更新为 16 技能/10 workflow；关闭 F4：本节 V-6 状态改为 closed；F2/F3/F5 记入 `docs/delivery-summary.md` §7.2 已知限制（对应文件不在 t49 in-scope） |
+
+当前结论：V-1..V-5、V-7、V-8 受理；**V-6 closed（t46）**；t48 F1/F4 由 t49 关闭，F2/F3/F5 已入册为已知限制。v0.2.0 可交付。
